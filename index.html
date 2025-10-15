@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Video Noise Removal</title>
+</head>
+<body>
+    <h1>🎬 AI Video Noise Removal</h1>
+    <p>Upload a video to remove noise and silence automatically</p>
+    
+    <div>
+        <input type="file" id="videoInput" accept="video/*">
+        <button onclick="uploadVideo()">Upload & Process</button>
+    </div>
+    
+    <div id="status" style="margin-top: 20px;"></div>
+    
+    <div id="result" style="margin-top: 20px;"></div>
+
+    <script>
+        const API_URL = 'http://localhost:8000';
+        
+        async function uploadVideo() {
+            const fileInput = document.getElementById('videoInput');
+            const statusDiv = document.getElementById('status');
+            const resultDiv = document.getElementById('result');
+            
+            if (!fileInput.files || !fileInput.files[0]) {
+                alert('Please select a video file first');
+                return;
+            }
+            
+            const file = fileInput.files[0];
+            
+            // Clear previous results
+            resultDiv.innerHTML = '';
+            statusDiv.innerHTML = '<p>⏳ Uploading and processing video... This may take a few minutes.</p>';
+            
+            const formData = new FormData();
+            formData.append('file', file);
+            
+            try {
+                const response = await fetch(`${API_URL}/upload`, {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.detail || 'Upload failed');
+                }
+                
+                const data = await response.json();
+                
+                if (data.status === 'done') {
+                    statusDiv.innerHTML = '<p>✅ Processing complete!</p>';
+                    
+                    const videoUrl = `${API_URL}${data.output_file}`;
+                    resultDiv.innerHTML = `
+                        <h3>Cleaned Video:</h3>
+                        <video controls width="640" height="360">
+                            <source src="${videoUrl}" type="video/mp4">
+                            Your browser does not support the video tag.
+                        </video>
+                        <br>
+                        <a href="${videoUrl}" download>Download Cleaned Video</a>
+                    `;
+                } else {
+                    statusDiv.innerHTML = '<p>⚠️ Processing completed with unknown status</p>';
+                }
+                
+            } catch (error) {
+                statusDiv.innerHTML = `<p>❌ Error: ${error.message}</p>`;
+                console.error('Upload error:', error);
+            }
+        }
+        
+        // Allow Enter key to trigger upload
+        document.getElementById('videoInput').addEventListener('change', function(e) {
+            if (e.target.files && e.target.files[0]) {
+                console.log('File selected:', e.target.files[0].name);
+            }
+        });
+    </script>
+</body>
+</html>
