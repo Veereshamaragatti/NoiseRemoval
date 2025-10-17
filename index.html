@@ -4,46 +4,351 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AI Video Noise Removal</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 800px;
+            width: 100%;
+            padding: 40px;
+        }
+
+        h1 {
+            color: #333;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+
+        .subtitle {
+            color: #666;
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 1.1em;
+        }
+
+        .upload-section {
+            background: #f8f9fa;
+            border: 2px dashed #667eea;
+            border-radius: 15px;
+            padding: 30px;
+            text-align: center;
+            margin-bottom: 25px;
+            transition: all 0.3s ease;
+        }
+
+        .upload-section:hover {
+            border-color: #764ba2;
+            background: #f0f1ff;
+        }
+
+        .file-input-wrapper {
+            position: relative;
+            display: inline-block;
+            cursor: pointer;
+            margin-bottom: 20px;
+        }
+
+        .file-input-wrapper input[type="file"] {
+            position: absolute;
+            opacity: 0;
+            width: 100%;
+            height: 100%;
+            cursor: pointer;
+        }
+
+        .file-input-label {
+            display: inline-block;
+            padding: 15px 30px;
+            background: #667eea;
+            color: white;
+            border-radius: 10px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 1.1em;
+        }
+
+        .file-input-label:hover {
+            background: #764ba2;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .file-name {
+            display: block;
+            margin-top: 15px;
+            color: #667eea;
+            font-weight: bold;
+            min-height: 24px;
+        }
+
+        .options-section {
+            margin: 25px 0;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+        }
+
+        .option-title {
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 1.1em;
+        }
+
+        .checkbox-wrapper {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+            padding: 12px;
+            background: white;
+            border-radius: 8px;
+            transition: all 0.2s ease;
+        }
+
+        .checkbox-wrapper:hover {
+            background: #f0f1ff;
+        }
+
+        .checkbox-wrapper input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            margin-right: 12px;
+            cursor: pointer;
+        }
+
+        .checkbox-wrapper label {
+            cursor: pointer;
+            flex: 1;
+            font-size: 1em;
+            color: #333;
+        }
+
+        .option-description {
+            font-size: 0.85em;
+            color: #666;
+            margin-top: 5px;
+            display: block;
+        }
+
+        .process-btn {
+            width: 100%;
+            padding: 18px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.2em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .process-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.6);
+        }
+
+        .process-btn:active {
+            transform: translateY(0);
+        }
+
+        .process-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        #status {
+            margin-top: 25px;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            font-size: 1.1em;
+        }
+
+        #status.processing {
+            background: #fff3cd;
+            border: 2px solid #ffc107;
+            color: #856404;
+        }
+
+        #status.success {
+            background: #d4edda;
+            border: 2px solid #28a745;
+            color: #155724;
+        }
+
+        #status.error {
+            background: #f8d7da;
+            border: 2px solid #dc3545;
+            color: #721c24;
+        }
+
+        #result {
+            margin-top: 30px;
+            text-align: center;
+        }
+
+        #result h3 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 1.5em;
+        }
+
+        #result video {
+            max-width: 100%;
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            margin-bottom: 20px;
+        }
+
+        .download-btn {
+            display: inline-block;
+            padding: 15px 40px;
+            background: #28a745;
+            color: white;
+            text-decoration: none;
+            border-radius: 10px;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            font-size: 1.1em;
+        }
+
+        .download-btn:hover {
+            background: #218838;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(40, 167, 69, 0.4);
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .info-badge {
+            display: inline-block;
+            background: #667eea;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-size: 0.85em;
+            margin-left: 10px;
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                padding: 20px;
+            }
+
+            h1 {
+                font-size: 1.8em;
+            }
+
+            .process-btn {
+                font-size: 1em;
+            }
+        }
+    </style>
 </head>
 <body>
-    <h1>🎬 AI Video Noise Removal</h1>
-    <p>Upload a video to remove noise and silence automatically</p>
-    
-    <div>
-        <input type="file" id="videoInput" accept="video/*">
-        <br><br>
+    <div class="container">
+        <h1>🎬 AI Video Noise Removal</h1>
+        <p class="subtitle">Upload a video to remove noise and silence automatically using AI</p>
         
-        <label>
-            <input type="checkbox" id="useGpu">
-            Use GPU (faster, requires CUDA)
-        </label>
-        <br>
+        <div class="upload-section">
+            <div class="file-input-wrapper">
+                <input type="file" id="videoInput" accept="video/*">
+                <div class="file-input-label">📁 Choose Video File</div>
+            </div>
+            <span class="file-name" id="fileName">No file selected</span>
+        </div>
+
+        <div class="options-section">
+            <div class="option-title">⚙️ Processing Options</div>
+            
+            <div class="checkbox-wrapper">
+                <input type="checkbox" id="useGpu">
+                <label for="useGpu">
+                    <strong>Use GPU Acceleration</strong>
+                    <span class="option-description">Faster processing if you have NVIDIA CUDA GPU</span>
+                </label>
+                <span class="info-badge">Fast</span>
+            </div>
+            
+            <div class="checkbox-wrapper">
+                <input type="checkbox" id="useFacebookDenoiser">
+                <label for="useFacebookDenoiser">
+                    <strong>Use Facebook Denoiser</strong>
+                    <span class="option-description">Higher quality but requires ~7GB RAM</span>
+                </label>
+                <span class="info-badge">Quality</span>
+            </div>
+        </div>
         
-        <label>
-            <input type="checkbox" id="useFacebookDenoiser">
-            Use Facebook Denoiser (higher quality, uses more memory)
-        </label>
-        <br><br>
+        <button class="process-btn" onclick="uploadVideo()">🚀 Upload & Process Video</button>
         
-        <button onclick="uploadVideo()">Upload & Process</button>
+        <div id="status"></div>
+        
+        <div id="result"></div>
     </div>
-    
-    <div id="status" style="margin-top: 20px;"></div>
-    
-    <div id="result" style="margin-top: 20px;"></div>
 
     <script>
         const API_URL = 'http://localhost:8000';
+        
+        // Update file name display when file is selected
+        document.getElementById('videoInput').addEventListener('change', function(e) {
+            const fileNameSpan = document.getElementById('fileName');
+            if (e.target.files && e.target.files[0]) {
+                const fileName = e.target.files[0].name;
+                const fileSize = (e.target.files[0].size / (1024 * 1024)).toFixed(2);
+                fileNameSpan.textContent = `📹 ${fileName} (${fileSize} MB)`;
+                console.log('File selected:', fileName);
+            } else {
+                fileNameSpan.textContent = 'No file selected';
+            }
+        });
         
         async function uploadVideo() {
             const fileInput = document.getElementById('videoInput');
             const statusDiv = document.getElementById('status');
             const resultDiv = document.getElementById('result');
+            const processBtn = document.querySelector('.process-btn');
             const useGpu = document.getElementById('useGpu').checked;
             const useFacebookDenoiser = document.getElementById('useFacebookDenoiser').checked;
             
             if (!fileInput.files || !fileInput.files[0]) {
-                alert('Please select a video file first');
+                alert('⚠️ Please select a video file first!');
                 return;
             }
             
@@ -58,7 +363,17 @@
             if (useFacebookDenoiser) settings.push('Facebook Denoiser enabled');
             const settingsText = settings.length > 0 ? ` (${settings.join(', ')})` : ' (CPU only, memory-efficient)';
             
-            statusDiv.innerHTML = `<p>⏳ Uploading and processing video${settingsText}... This may take a few minutes.</p>`;
+            // Show processing status
+            statusDiv.className = 'processing';
+            statusDiv.innerHTML = `
+                <div class="spinner"></div>
+                <p><strong>⏳ Processing your video${settingsText}</strong></p>
+                <p>This may take a few minutes depending on video length...</p>
+            `;
+            
+            // Disable button during processing
+            processBtn.disabled = true;
+            processBtn.textContent = '⏳ Processing...';
             
             const formData = new FormData();
             formData.append('file', file);
@@ -79,34 +394,34 @@
                 const data = await response.json();
                 
                 if (data.status === 'done') {
-                    statusDiv.innerHTML = '<p>✅ Processing complete!</p>';
+                    statusDiv.className = 'success';
+                    statusDiv.innerHTML = '<p><strong>✅ Processing Complete!</strong></p><p>Your video has been cleaned successfully.</p>';
                     
                     const videoUrl = `${API_URL}${data.output_file}`;
                     resultDiv.innerHTML = `
-                        <h3>Cleaned Video:</h3>
+                        <h3>🎉 Your Cleaned Video is Ready!</h3>
                         <video controls width="640" height="360">
                             <source src="${videoUrl}" type="video/mp4">
                             Your browser does not support the video tag.
                         </video>
-                        <br>
-                        <a href="${videoUrl}" download>Download Cleaned Video</a>
+                        <br><br>
+                        <a href="${videoUrl}" class="download-btn" download>⬇️ Download Cleaned Video</a>
                     `;
                 } else {
-                    statusDiv.innerHTML = '<p>⚠️ Processing completed with unknown status</p>';
+                    statusDiv.className = 'error';
+                    statusDiv.innerHTML = '<p><strong>⚠️ Processing completed with unknown status</strong></p>';
                 }
                 
             } catch (error) {
-                statusDiv.innerHTML = `<p>❌ Error: ${error.message}</p>`;
+                statusDiv.className = 'error';
+                statusDiv.innerHTML = `<p><strong>❌ Error:</strong> ${error.message}</p><p>Please try again or use different settings.</p>`;
                 console.error('Upload error:', error);
+            } finally {
+                // Re-enable button
+                processBtn.disabled = false;
+                processBtn.textContent = '🚀 Upload & Process Video';
             }
         }
-        
-        // Allow Enter key to trigger upload
-        document.getElementById('videoInput').addEventListener('change', function(e) {
-            if (e.target.files && e.target.files[0]) {
-                console.log('File selected:', e.target.files[0].name);
-            }
-        });
     </script>
 </body>
 </html>
