@@ -30,7 +30,7 @@ FFMPEG_CMD = str(FFMPEG_PATH) if FFMPEG_PATH.exists() else "ffmpeg"
 AudioSegment.converter = FFMPEG_CMD
 
 
-def process_video(input_video: str, output_path: str, use_gpu: bool = False, use_facebook_denoiser: bool = False) -> str:
+def process_video(input_video: str, output_path: str, use_gpu: bool = False, use_facebook_denoiser: bool = False) -> dict:
     """
     Process video: AI noise removal + silence trimming + sync
     
@@ -41,7 +41,13 @@ def process_video(input_video: str, output_path: str, use_gpu: bool = False, use
         use_facebook_denoiser: Whether to use Facebook Denoiser (requires more memory). Default False
         
     Returns:
-        str: Path to the processed output video
+        dict: {
+            'output_path': str,
+            'original_duration': float,
+            'processed_duration': float,
+            'silence_removed_percent': float,
+            'segments_removed': int
+        }
     """
     print(f"🎬 Starting video processing: {input_video}")
     print(f"⚙️ Settings: GPU={'Enabled' if use_gpu else 'Disabled'}, Facebook Denoiser={'Enabled' if use_facebook_denoiser else 'Disabled'}")
@@ -133,14 +139,26 @@ def process_video(input_video: str, output_path: str, use_gpu: bool = False, use
         dur = librosa.get_duration(filename=clean_audio)
 
         segments, prev = [], 0.0
+        silence_duration = 0.0
         for s, e in zip(starts, ends):
             if s - prev > 0.25:
                 segments.append((prev, s))
+            else:
+                silence_duration += (s - prev)  # Track skipped silences
+            silence_duration += (e - s)  # Track actual silence
             prev = e
         if not ends or ends[-1] < dur:
             segments.append((prev, dur))
         if not segments:
             segments = [(0, dur)]
+        
+        # Calculate statistics
+        original_duration = dur
+        processed_duration = sum(e - s for s, e in segments)
+        silence_removed_percent = (silence_duration / original_duration * 100) if original_duration > 0 else 0
+        segments_removed = len(starts)
+        
+        print(f"📊 Statistics: Original={original_duration:.1f}s, Processed={processed_duration:.1f}s, Silence removed={silence_removed_percent:.1f}%")
 
         # === STEP 5: Trim video and audio per segment ===
         print(f"🎬 Cutting {len(segments)} segments and re-syncing...")
@@ -194,7 +212,15 @@ def process_video(input_video: str, output_path: str, use_gpu: bool = False, use
         ], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, check=True)
 
         print(f"✅ Video processing complete: {output_path}")
-        return output_path
+        
+        # Return statistics
+        return {
+            'output_path': output_path,
+            'original_duration': round(original_duration, 2),
+            'processed_duration': round(processed_duration, 2),
+            'silence_removed_percent': round(silence_removed_percent, 2),
+            'segments_removed': segments_removed
+        }
         
     finally:
         # === STEP 8: Cleanup everything ===

@@ -67,9 +67,11 @@ async def upload_video(
         file_extension = os.path.splitext(file.filename)[1]
         input_filename = f"{file_id}_input{file_extension}"
         output_filename = f"{file_id}_clean_synced.mp4"
+        original_filename = f"{file_id}_original{file_extension}"
         
         input_path = UPLOAD_DIR / input_filename
         output_path = OUTPUT_DIR / output_filename
+        original_path = OUTPUT_DIR / original_filename
         
         # Save uploaded file
         print(f"📥 Receiving upload: {file.filename}")
@@ -79,9 +81,13 @@ async def upload_video(
         
         print(f"✅ File saved: {input_path}")
         
+        # Copy original to outputs for comparison
+        import shutil
+        shutil.copy(str(input_path), str(original_path))
+        
         # Process the video with user-selected options
         print("🚀 Starting video processing...")
-        result_path = process_video(
+        result = process_video(
             str(input_path), 
             str(output_path),
             use_gpu=use_gpu,
@@ -98,6 +104,13 @@ async def upload_video(
         return JSONResponse(content={
             "status": "done",
             "output_file": f"/download/{output_filename}",
+            "original_file": f"/download/{original_filename}",
+            "statistics": {
+                "original_duration": result['original_duration'],
+                "processed_duration": result['processed_duration'],
+                "silence_removed_percent": result['silence_removed_percent'],
+                "segments_removed": result['segments_removed']
+            },
             "message": "Video processed successfully"
         })
         
