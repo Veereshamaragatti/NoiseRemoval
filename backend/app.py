@@ -6,7 +6,7 @@ FastAPI backend for AI video noise removal
 import os
 import uuid
 from pathlib import Path
-from fastapi import FastAPI, File, UploadFile, HTTPException
+from fastapi import FastAPI, File, UploadFile, HTTPException, Form
 from fastapi.responses import FileResponse, JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 import uvicorn
@@ -41,12 +41,18 @@ async def root():
 
 
 @app.post("/upload")
-async def upload_video(file: UploadFile = File(...)):
+async def upload_video(
+    file: UploadFile = File(...),
+    use_gpu: bool = Form(False),
+    use_facebook_denoiser: bool = Form(False)
+):
     """
     Upload a video file, process it, and return the cleaned version
     
     Args:
         file: Uploaded video file
+        use_gpu: Whether to use GPU for processing (requires CUDA)
+        use_facebook_denoiser: Whether to use Facebook Denoiser (higher quality but more memory)
         
     Returns:
         JSON with status and download link
@@ -73,9 +79,14 @@ async def upload_video(file: UploadFile = File(...)):
         
         print(f"✅ File saved: {input_path}")
         
-        # Process the video
+        # Process the video with user-selected options
         print("🚀 Starting video processing...")
-        result_path = process_video(str(input_path), str(output_path))
+        result_path = process_video(
+            str(input_path), 
+            str(output_path),
+            use_gpu=use_gpu,
+            use_facebook_denoiser=use_facebook_denoiser
+        )
         
         # Clean up input file after processing
         try:

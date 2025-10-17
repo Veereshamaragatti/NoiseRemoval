@@ -5,6 +5,8 @@ Video processing module - wraps the AI noise removal pipeline
 
 import os
 import subprocess
+
+# We'll set CUDA visibility dynamically in the function
 import torch
 import torchaudio
 import numpy as np
@@ -28,18 +30,21 @@ FFMPEG_CMD = str(FFMPEG_PATH) if FFMPEG_PATH.exists() else "ffmpeg"
 AudioSegment.converter = FFMPEG_CMD
 
 
-def process_video(input_video: str, output_path: str) -> str:
+def process_video(input_video: str, output_path: str, use_gpu: bool = False, use_facebook_denoiser: bool = False) -> str:
     """
     Process video: AI noise removal + silence trimming + sync
     
     Args:
         input_video: Path to input video file
         output_path: Path where the cleaned video should be saved
+        use_gpu: Whether to use GPU (CUDA) for processing. Default False (CPU only)
+        use_facebook_denoiser: Whether to use Facebook Denoiser (requires more memory). Default False
         
     Returns:
         str: Path to the processed output video
     """
     print(f"🎬 Starting video processing: {input_video}")
+    print(f"⚙️ Settings: GPU={'Enabled' if use_gpu else 'Disabled'}, Facebook Denoiser={'Enabled' if use_facebook_denoiser else 'Disabled'}")
     
     temp_dir = tempfile.mkdtemp()
     
@@ -47,34 +52,57 @@ def process_video(input_video: str, output_path: str) -> str:
         # === STEP 1: Extract audio ===
         temp_audio = os.path.join(temp_dir, "input_audio.wav")
         print("🎧 Extracting audio from video...")
+        # Extract shorter audio segments to reduce memory usage
         subprocess.run(
-            [FFMPEG_CMD, "-i", input_video, "-ar", "48000", "-ac", "1", "-vn", temp_audio, "-y"],
+            [FFMPEG_CMD, "-i", input_video, "-ar", "16000", "-ac", "1", "-vn", temp_audio, "-y"],
             stdout=subprocess.DEVNULL, 
             stderr=subprocess.DEVNULL,
             check=True
         )
 
         # === STEP 2: Denoising ===
-        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-        print(f"🚀 Using {device.type.upper()} for processing...")
+        # Set device based on user choice
+        if use_gpu and torch.cuda.is_available():
+            device = torch.device("cuda")
+            print(f"🚀 Using GPU (CUDA) for processing...")
+        else:
+            device = torch.device("cpu")
+            if use_gpu and not torch.cuda.is_available():
+                print(f"⚠️ GPU requested but not available. Using CPU instead...")
+            else:
+                print(f"🚀 Using CPU for processing...")
+            # Force CPU by hiding CUDA
+            torch.cuda.is_available = lambda: False
+        
+        torch.cuda.empty_cache()  # Clear any GPU memory
 
         model, df_state, _ = init_df()
         model = model.to(device)
+        # Ensure model is actually on the correct device
+        for param in model.parameters():
+            param.data = param.data.to(device)
+            if param.grad is not None:
+                param.grad.data = param.grad.data.to(device)
         a, _ = load_audio(temp_audio, sr=ModelParams().sr)
         enh = enhance(model, df_state, a, pad=True)
         stage1 = os.path.join(temp_dir, "stage1.wav")
         save_audio(stage1, enh, sr=ModelParams().sr)
 
-        print("🧠 Facebook Denoiser (non-stationary)...")
-        from denoiser import pretrained
-        from denoiser.dsp import convert_audio
-        dns = pretrained.dns64().to(device)
-        wav, sr = torchaudio.load(stage1)
-        wav = convert_audio(wav.to(device), sr, dns.sample_rate, dns.chin).unsqueeze(0)
-        with torch.no_grad():
-            out = dns(wav)[0]
-        stage2 = os.path.join(temp_dir, "stage2.wav")
-        torchaudio.save(stage2, out.cpu(), dns.sample_rate)
+        # Facebook Denoiser (optional, uses more memory)
+        if use_facebook_denoiser:
+            print("🧠 Facebook Denoiser (non-stationary)...")
+            from denoiser import pretrained
+            from denoiser.dsp import convert_audio
+            dns = pretrained.dns64().to(device)
+            wav, sr = torchaudio.load(stage1)
+            wav = convert_audio(wav.to(device), sr, dns.sample_rate, dns.chin).unsqueeze(0)
+            with torch.no_grad():
+                out = dns(wav)[0]
+            stage2 = os.path.join(temp_dir, "stage2.wav")
+            torchaudio.save(stage2, out.cpu() if device.type == "cuda" else out, dns.sample_rate)
+        else:
+            print("⚡ Skipping Facebook Denoiser (memory-efficient mode)...")
+            stage2 = stage1  # Use DeepFilterNet output directly
 
         # === STEP 3: Speech-aware gating + EQ ===
         print("🔇 Speech-aware gating + EQ...")

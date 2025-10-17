@@ -11,6 +11,20 @@
     
     <div>
         <input type="file" id="videoInput" accept="video/*">
+        <br><br>
+        
+        <label>
+            <input type="checkbox" id="useGpu">
+            Use GPU (faster, requires CUDA)
+        </label>
+        <br>
+        
+        <label>
+            <input type="checkbox" id="useFacebookDenoiser">
+            Use Facebook Denoiser (higher quality, uses more memory)
+        </label>
+        <br><br>
+        
         <button onclick="uploadVideo()">Upload & Process</button>
     </div>
     
@@ -25,6 +39,8 @@
             const fileInput = document.getElementById('videoInput');
             const statusDiv = document.getElementById('status');
             const resultDiv = document.getElementById('result');
+            const useGpu = document.getElementById('useGpu').checked;
+            const useFacebookDenoiser = document.getElementById('useFacebookDenoiser').checked;
             
             if (!fileInput.files || !fileInput.files[0]) {
                 alert('Please select a video file first');
@@ -35,10 +51,19 @@
             
             // Clear previous results
             resultDiv.innerHTML = '';
-            statusDiv.innerHTML = '<p>⏳ Uploading and processing video... This may take a few minutes.</p>';
+            
+            // Show settings
+            const settings = [];
+            if (useGpu) settings.push('GPU enabled');
+            if (useFacebookDenoiser) settings.push('Facebook Denoiser enabled');
+            const settingsText = settings.length > 0 ? ` (${settings.join(', ')})` : ' (CPU only, memory-efficient)';
+            
+            statusDiv.innerHTML = `<p>⏳ Uploading and processing video${settingsText}... This may take a few minutes.</p>`;
             
             const formData = new FormData();
             formData.append('file', file);
+            formData.append('use_gpu', useGpu);
+            formData.append('use_facebook_denoiser', useFacebookDenoiser);
             
             try {
                 const response = await fetch(`${API_URL}/upload`, {
