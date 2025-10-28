@@ -1,0 +1,30 @@
+# Requirements for GPU-accelerated processing
+# Use this if you have NVIDIA GPU with CUDA support
+
+# PyTorch with CUDA 11.8 support
+--index-url https://download.pytorch.org/whl/cu118
+torch>=2.0.0+cu118
+torchaudio>=2.0.0+cu118
+
+# AI Models for Noise Removal
+deepfilternet>=0.5.6
+denoiser>=0.1.5
+
+# Audio Processing Libraries
+librosa>=0.10.0
+soundfile>=0.12.1
+pydub>=0.25.1
+scipy>=1.10.0
+numpy>=1.24.0
+
+# Web Framework & API
+fastapi>=0.100.0
+uvicorn>=0.23.0
+python-multipart>=0.0.6
+
+# Additional Dependencies
+audioread>=3.0.0
+sounddevice>=0.4.6
+
+# Note: CUDA Toolkit 11.8 must be installed separately
+# Download from: https://developer.nvidia.com/cuda-11-8-0-download-archive

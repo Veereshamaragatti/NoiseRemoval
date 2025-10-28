@@ -1,3 +1,66 @@
-/noise
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg
+*.egg-info/
+dist/
+build/
+*.whl
+
+# Virtual Environment
+noise/
+venv/
+ENV/
+env/
+.venv
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Project Specific - Uploaded/Processed Videos
+backend/uploads/*
+backend/outputs/*
+!backend/uploads/.gitkeep
+!backend/outputs/.gitkeep
+*.mp4
+*.avi
+*.mov
+*.mkv
+*.wav
+*.mp3
+
+# Logs
+*.log
+logs/
+*.out
+
+# Temporary Files
+temp/
+tmp/
+*.tmp
+.cache/
+
+# Model Cache (DeepFilterNet models are auto-downloaded)
+.deepfilter/
+*.ckpt
+*.pth
+
+# OS
+Thumbs.db
+.DS_Store
+*.bak
+
+# Rust (from original setup)
 /rustup-init.exe
-/__pycache__
+
+# Test Files
+test_videos/
+test_output/

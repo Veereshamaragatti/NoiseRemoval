@@ -1,0 +1,27 @@
+# Core Deep Learning Framework
+torch>=2.0.0
+torchaudio>=2.0.0
+
+# AI Models for Noise Removal
+deepfilternet>=0.5.6
+denoiser>=0.1.5
+
+# Audio Processing Libraries
+librosa>=0.10.0
+soundfile>=0.12.1
+pydub>=0.25.1
+scipy>=1.10.0
+numpy>=1.24.0
+
+# Web Framework & API
+fastapi>=0.100.0
+uvicorn>=0.23.0
+python-multipart>=0.0.6
+
+# Additional Dependencies
+audioread>=3.0.0
+sounddevice>=0.4.6
+
+# Optional: For better performance
+# numba>=0.57.0  # Speeds up librosa
+# colorlog>=6.7.0  # Better logging for DeepFilterNet
