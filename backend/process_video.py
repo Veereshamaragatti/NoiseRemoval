@@ -15,11 +15,27 @@ import tempfile
 import librosa
 import soundfile as sf
 from pathlib import Path
-from df import enhance, init_df
-from df.model import ModelParams
-from df.io import load_audio, save_audio
 import scipy.signal as sps
 from pydub import AudioSegment, effects
+
+# Try to import DeepFilterNet (optional)
+try:
+    from df import enhance, init_df
+    from df.model import ModelParams
+    from df.io import load_audio, save_audio
+    DEEPFILTERNET_AVAILABLE = True
+except ImportError:
+    DEEPFILTERNET_AVAILABLE = False
+    print("⚠️  DeepFilterNet not available - will skip advanced noise removal")
+
+# Try to import Facebook Denoiser (optional)
+try:
+    from denoiser import pretrained
+    from denoiser.dsp import convert_audio
+    FACEBOOK_DENOISER_AVAILABLE = True
+except ImportError:
+    FACEBOOK_DENOISER_AVAILABLE = False
+    print("⚠️  Facebook Denoiser not available - will skip if requested")
 
 # Set FFmpeg path
 SCRIPT_DIR = Path(__file__).parent.parent
@@ -93,28 +109,31 @@ def process_video(
                 print(f"⚠️ GPU requested but not available. Using CPU instead...")
             else:
                 print(f"🚀 Using CPU for processing...")
-            # Force CPU by hiding CUDA
-            torch.cuda.is_available = lambda: False
         
-        torch.cuda.empty_cache()  # Clear any GPU memory
+        if torch.cuda.is_available():
+            torch.cuda.empty_cache()  # Clear any GPU memory
 
-        model, df_state, _ = init_df()
-        model = model.to(device)
-        # Ensure model is actually on the correct device
-        for param in model.parameters():
-            param.data = param.data.to(device)
-            if param.grad is not None:
-                param.grad.data = param.grad.data.to(device)
-        a, _ = load_audio(temp_audio, sr=ModelParams().sr)
-        enh = enhance(model, df_state, a, pad=True)
-        stage1 = os.path.join(temp_dir, "stage1.wav")
-        save_audio(stage1, enh, sr=ModelParams().sr)
+        # DeepFilterNet stage (if available)
+        if DEEPFILTERNET_AVAILABLE:
+            print("🔊 Removing noise with DeepFilterNet...")
+            model, df_state, _ = init_df()
+            model = model.to(device)
+            # Ensure model is actually on the correct device
+            for param in model.parameters():
+                param.data = param.data.to(device)
+                if param.grad is not None:
+                    param.grad.data = param.grad.data.to(device)
+            a, _ = load_audio(temp_audio, sr=ModelParams().sr)
+            enh = enhance(model, df_state, a, pad=True)
+            stage1 = os.path.join(temp_dir, "stage1.wav")
+            save_audio(stage1, enh, sr=ModelParams().sr)
+        else:
+            print("⚠️  Skipping DeepFilterNet (not installed)")
+            stage1 = temp_audio
 
         # Facebook Denoiser (optional, uses more memory)
-        if use_facebook_denoiser:
+        if use_facebook_denoiser and FACEBOOK_DENOISER_AVAILABLE:
             print("🧠 Facebook Denoiser (non-stationary)...")
-            from denoiser import pretrained
-            from denoiser.dsp import convert_audio
             dns = pretrained.dns64().to(device)
             wav, sr = torchaudio.load(stage1)
             wav = convert_audio(wav.to(device), sr, dns.sample_rate, dns.chin).unsqueeze(0)
@@ -123,8 +142,11 @@ def process_video(
             stage2 = os.path.join(temp_dir, "stage2.wav")
             torchaudio.save(stage2, out.cpu() if device.type == "cuda" else out, dns.sample_rate)
         else:
-            print("⚡ Skipping Facebook Denoiser (memory-efficient mode)...")
-            stage2 = stage1  # Use DeepFilterNet output directly
+            if use_facebook_denoiser and not FACEBOOK_DENOISER_AVAILABLE:
+                print("⚠️  Facebook Denoiser requested but not installed")
+            else:
+                print("⚡ Skipping Facebook Denoiser (memory-efficient mode)...")
+            stage2 = stage1  # Use previous stage output directly
 
         # === STEP 3: Speech-aware gating + EQ ===
         print("🔇 Speech-aware gating + EQ...")

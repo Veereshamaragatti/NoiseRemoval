@@ -8,6 +8,7 @@ from gtts import gTTS
 import uuid
 from werkzeug.utils import secure_filename
 from pydub import AudioSegment
+from video_processor import VideoProcessor
 
 
 # -----------------------
@@ -15,7 +16,9 @@ from pydub import AudioSegment
 # -----------------------
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 UPLOAD_FOLDER = os.path.join(BASE_DIR, "static", "uploads")
+PROCESSED_FOLDER = os.path.join(BASE_DIR, "static", "processed")
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+os.makedirs(PROCESSED_FOLDER, exist_ok=True)
 
 # Whisper model selection: "base", "small", "medium", "large"
 WHISPER_MODEL_NAME = "small"
@@ -41,11 +44,12 @@ SUPPORTED_LANGS = {
 
 app = Flask(__name__)
 app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
+app.config["PROCESSED_FOLDER"] = PROCESSED_FOLDER
 
-# Load Whisper model (may take a while on first run)
-print("Loading Whisper model:", WHISPER_MODEL_NAME)
-whisper_model = whisper.load_model(WHISPER_MODEL_NAME)
-print("Whisper loaded")
+# Load Whisper model and Video Processor (may take a while on first run)
+print("Loading Video Processor with integrated noise removal and transcription...")
+video_processor = VideoProcessor(whisper_model_name=WHISPER_MODEL_NAME)
+print("Video Processor loaded and ready!")
 
 
 # -----------------------
@@ -251,7 +255,81 @@ def player(filename):
 def uploaded_file(filename):
     return send_from_directory(app.config["UPLOAD_FOLDER"], filename, as_attachment=False)
 
-@app.route("/transcribe", methods=["POST"])
+@app.route("/processed/<path:filename>")
+def processed_file(filename):
+    return send_from_directory(app.config["PROCESSED_FOLDER"], filename, as_attachment=False)
+
+@app.route("/process", methods=["POST"])
+def process():
+    """
+    POST JSON expected:
+    {
+      "filename": "<uploaded file name>",
+      "remove_noise": true,
+      "remove_silence": true,
+      "transcribe": true
+    }
+    Returns JSON with paths to processed video, audio, and transcription.
+    """
+    try:
+        data = request.get_json()
+        if not data or "filename" not in data:
+            return jsonify({"ok": False, "error": "filename required"}), 400
+
+        filename = data["filename"]
+        remove_noise = data.get("remove_noise", True)
+        remove_silence = data.get("remove_silence", True)
+        do_transcribe = data.get("transcribe", True)
+        
+        video_path = os.path.join(app.config["UPLOAD_FOLDER"], filename)
+        if not os.path.exists(video_path):
+            return jsonify({"ok": False, "error": "video not found"}), 404
+
+        # Process the video through the complete pipeline
+        result = video_processor.process_video(
+            input_video=video_path,
+            output_dir=app.config["PROCESSED_FOLDER"],
+            remove_noise=remove_noise,
+            remove_silence=remove_silence,
+            transcribe=do_transcribe
+        )
+        
+        if not result["success"]:
+            return jsonify({
+                "ok": False, 
+                "error": result.get("error", "Processing failed")
+            }), 500
+        
+        # Generate URLs for frontend
+        processed_video_name = os.path.basename(result["processed_video"])
+        processed_audio_name = os.path.basename(result["processed_audio"])
+        
+        response_data = {
+            "ok": True,
+            "processed_video": url_for("processed_file", filename=processed_video_name),
+            "processed_audio": url_for("processed_file", filename=processed_audio_name),
+        }
+        
+        if do_transcribe and result.get("vtt_file"):
+            vtt_name = os.path.basename(result["vtt_file"])
+            response_data["vtt"] = url_for("processed_file", filename=vtt_name)
+            response_data["detected_language"] = result.get("detected_language", "unknown")
+            
+            # Get language name
+            from flask import current_app
+            lang_name = SUPPORTED_LANGS.get(
+                result.get("detected_language"), 
+                {}
+            ).get("name", result.get("detected_language", "Unknown").upper())
+            response_data["language_name"] = lang_name
+        
+        return jsonify(response_data)
+        
+    except Exception as e:
+        import traceback
+        error_details = traceback.format_exc()
+        print("Processing error:", error_details)
+        return jsonify({"ok": False, "error": str(e)}), 500
 def transcribe():
     """
     POST JSON expected:

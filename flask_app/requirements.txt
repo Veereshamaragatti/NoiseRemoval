@@ -6,3 +6,12 @@ gTTS
 ffmpeg-python
 pydub
 werkzeug
+torch
+torchaudio
+librosa
+soundfile
+numpy
+scipy
+DeepFilterNet
+denoiser
+

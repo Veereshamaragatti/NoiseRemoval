@@ -159,14 +159,49 @@
     </video>
 
     <div class="controls">
-      <button class="btn btn-secondary" id="openTranscribe">📝 Transcribe Audio</button>
+      <button class="btn btn-secondary" id="openProcess">⚙️ Process Video (Noise + Silence + Transcribe)</button>
       <button class="btn" id="openTranslate">🌍 Translate Audio</button>
       <span id="status" class="small" style="margin-left: auto; align-self: center;"></span>
     </div>
 
     <div id="statusMessage" class="status-message"></div>
 
-    <!-- Transcribe modal -->
+    <!-- Process modal -->
+    <div id="processModal" class="modal">
+      <div class="modal-content">
+        <h3>⚙️ Process Video</h3>
+        <p>Complete pipeline: Remove noise, remove silence, and transcribe audio</p>
+        
+        <div class="form-group">
+          <label>
+            <input type="checkbox" id="removeNoise" checked> 
+            🔊 Remove background noise
+          </label>
+        </div>
+        
+        <div class="form-group">
+          <label>
+            <input type="checkbox" id="removeSilence" checked> 
+            ✂️ Remove silence segments
+          </label>
+        </div>
+        
+        <div class="form-group">
+          <label>
+            <input type="checkbox" id="doTranscribeCheck" checked> 
+            📝 Generate transcription (subtitles)
+          </label>
+        </div>
+        
+        <div id="processStatus" class="small" style="margin-top: 15px; color: #666;"></div>
+        <div class="modal-buttons">
+          <button id="doProcess" class="btn">Start Processing</button>
+          <button id="cancelProcess" class="btn btn-cancel">Cancel</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Transcribe modal (kept for backward compatibility) -->
     <div id="transcribeModal" class="modal">
       <div class="modal-content">
         <h3>📝 Transcribe Audio</h3>
@@ -210,16 +245,24 @@
   </div>
 
   <script>
+    const openProcess = document.getElementById("openProcess");
     const openTranscribe = document.getElementById("openTranscribe");
     const openTranslate = document.getElementById("openTranslate");
+    const processModal = document.getElementById("processModal");
     const transcribeModal = document.getElementById("transcribeModal");
     const translateModal = document.getElementById("translateModal");
+    const cancelProcess = document.getElementById("cancelProcess");
     const cancelTranscribe = document.getElementById("cancelTranscribe");
     const cancelTranslate = document.getElementById("cancelTranslate");
+    const doProcess = document.getElementById("doProcess");
     const doTranscribe = document.getElementById("doTranscribe");
     const doTranslate = document.getElementById("doTranslate");
+    const removeNoise = document.getElementById("removeNoise");
+    const removeSilence = document.getElementById("removeSilence");
+    const doTranscribeCheck = document.getElementById("doTranscribeCheck");
     const fromLang = document.getElementById("fromLang");
     const toLang = document.getElementById("toLang");
+    const processStatus = document.getElementById("processStatus");
     const transcribeStatus = document.getElementById("transcribeStatus");
     const translateStatus = document.getElementById("translateStatus");
     const status = document.getElementById("status");
@@ -229,6 +272,7 @@
     const filename = "{{ filename }}";
 
     let detectedLanguage = null;
+    let processedVideoUrl = null;
 
     function showStatus(message, type = 'info') {
       statusMessage.textContent = message;
@@ -239,70 +283,164 @@
       }, 5000);
     }
 
-    // Transcribe functionality
-    openTranscribe.addEventListener("click", () => {
-      transcribeModal.style.display = "block";
-      transcribeStatus.textContent = "";
+    // Process functionality (main pipeline)
+    openProcess.addEventListener("click", () => {
+      processModal.style.display = "block";
+      processStatus.textContent = "";
     });
 
-    cancelTranscribe.addEventListener("click", () => {
-      transcribeModal.style.display = "none";
+    cancelProcess.addEventListener("click", () => {
+      processModal.style.display = "none";
     });
 
-    doTranscribe.addEventListener("click", async () => {
-      transcribeStatus.textContent = "🔄 Transcribing audio — this may take some time...";
-      doTranscribe.disabled = true;
+    doProcess.addEventListener("click", async () => {
+      const options = {
+        remove_noise: removeNoise.checked,
+        remove_silence: removeSilence.checked,
+        transcribe: doTranscribeCheck.checked
+      };
+      
+      processStatus.textContent = "🔄 Processing video — this may take several minutes for long videos...";
+      doProcess.disabled = true;
 
       try {
-        const res = await fetch("/transcribe", {
+        const res = await fetch("/process", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ filename: filename })
+          body: JSON.stringify({ 
+            filename: filename,
+            ...options
+          })
         });
         const js = await res.json();
         
         if (!js.ok) {
-          transcribeStatus.textContent = "❌ Error: " + (js.error || "unknown");
-          doTranscribe.disabled = false;
+          processStatus.textContent = "❌ Error: " + (js.error || "unknown");
+          doProcess.disabled = false;
           return;
         }
 
-        detectedLanguage = js.detected_source_language;
-        transcribeStatus.textContent = "✅ Transcription complete! Detected language: " + js.language_name;
-        status.textContent = "Original subtitles loaded (" + js.language_name + ")";
+        // Update video source to processed version
+        processedVideoUrl = js.processed_video;
+        video.src = js.processed_video;
+        video.load();
         
-        // Remove any existing transcription track
-        const existingTrack = document.querySelector("#video track[data-transcribe='true']");
-        if (existingTrack) existingTrack.remove();
+        let successMsg = "✅ Processing complete!";
+        if (options.remove_noise) successMsg += " Noise removed.";
+        if (options.remove_silence) successMsg += " Silence removed.";
+        
+        if (options.transcribe && js.vtt) {
+          detectedLanguage = js.detected_language;
+          processStatus.textContent = successMsg + " Detected language: " + js.language_name;
+          status.textContent = "Processed with subtitles (" + js.language_name + ")";
+          
+          // Remove any existing tracks
+          const existingTrack = document.querySelector("#video track[data-original='true']");
+          if (existingTrack) existingTrack.remove();
 
-        // Add transcription track
-        const track = document.createElement("track");
-        track.kind = "subtitles";
-        track.label = "Original (" + js.language_name + ")";
-        track.srclang = js.detected_source_language;
-        track.src = js.vtt;
-        track.setAttribute("data-transcribe", "true");
-        track.default = true;
-        video.appendChild(track);
+          // Add transcription track
+          const track = document.createElement("track");
+          track.kind = "subtitles";
+          track.label = "Original (" + js.language_name + ")";
+          track.srclang = js.detected_language;
+          track.src = js.vtt;
+          track.setAttribute("data-original", "true");
+          track.default = true;
+          video.appendChild(track);
 
-        // Load track
-        track.addEventListener("load", () => {
-          track.mode = "showing";
-        });
+          // Load track
+          track.addEventListener("load", () => {
+            track.mode = "showing";
+          });
+        } else {
+          processStatus.textContent = successMsg;
+          status.textContent = "Video processed successfully";
+        }
 
-        showStatus("✅ Transcription successful! Subtitles added.", "success");
+        showStatus("✅ Video processing successful!", "success");
         
         setTimeout(() => {
-          transcribeModal.style.display = "none";
-          doTranscribe.disabled = false;
-        }, 1500);
+          processModal.style.display = "none";
+          doProcess.disabled = false;
+        }, 2000);
 
       } catch (err) {
-        transcribeStatus.textContent = "❌ Unexpected error: " + err;
-        doTranscribe.disabled = false;
-        showStatus("❌ Transcription failed: " + err, "error");
+        processStatus.textContent = "❌ Unexpected error: " + err;
+        doProcess.disabled = false;
+        showStatus("❌ Processing failed: " + err, "error");
       }
     });
+
+    // Transcribe functionality (kept for backward compatibility)
+    if (openTranscribe) {
+      openTranscribe.addEventListener("click", () => {
+        transcribeModal.style.display = "block";
+        transcribeStatus.textContent = "";
+      });
+    }
+
+    if (cancelTranscribe) {
+      cancelTranscribe.addEventListener("click", () => {
+        transcribeModal.style.display = "none";
+      });
+    }
+
+    if (doTranscribe) {
+      doTranscribe.addEventListener("click", async () => {
+        transcribeStatus.textContent = "🔄 Transcribing audio — this may take some time...";
+        doTranscribe.disabled = true;
+
+        try {
+          const res = await fetch("/transcribe", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ filename: filename })
+          });
+          const js = await res.json();
+          
+          if (!js.ok) {
+            transcribeStatus.textContent = "❌ Error: " + (js.error || "unknown");
+            doTranscribe.disabled = false;
+            return;
+          }
+
+          detectedLanguage = js.detected_source_language;
+          transcribeStatus.textContent = "✅ Transcription complete! Detected language: " + js.language_name;
+          status.textContent = "Original subtitles loaded (" + js.language_name + ")";
+          
+          // Remove any existing transcription track
+          const existingTrack = document.querySelector("#video track[data-transcribe='true']");
+          if (existingTrack) existingTrack.remove();
+
+          // Add transcription track
+          const track = document.createElement("track");
+          track.kind = "subtitles";
+          track.label = "Original (" + js.language_name + ")";
+          track.srclang = js.detected_source_language;
+          track.src = js.vtt;
+          track.setAttribute("data-transcribe", "true");
+          track.default = true;
+          video.appendChild(track);
+
+          // Load track
+          track.addEventListener("load", () => {
+            track.mode = "showing";
+          });
+
+          showStatus("✅ Transcription successful! Subtitles added.", "success");
+          
+          setTimeout(() => {
+            transcribeModal.style.display = "none";
+            doTranscribe.disabled = false;
+          }, 1500);
+
+        } catch (err) {
+          transcribeStatus.textContent = "❌ Unexpected error: " + err;
+          doTranscribe.disabled = false;
+          showStatus("❌ Transcription failed: " + err, "error");
+        }
+      });
+    }
 
     // Translate functionality
     openTranslate.addEventListener("click", () => {
@@ -416,6 +554,9 @@
 
     // Close modals when clicking outside
     window.addEventListener("click", (e) => {
+      if (e.target === processModal) {
+        processModal.style.display = "none";
+      }
       if (e.target === transcribeModal) {
         transcribeModal.style.display = "none";
       }

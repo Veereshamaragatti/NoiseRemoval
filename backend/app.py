@@ -65,8 +65,17 @@ index_manager = SearchIndexManager(vtt_root=SUBTITLE_DIR)
 
 @app.get("/")
 async def root():
-    """Redirect to merged frontend"""
-    return RedirectResponse(url="/index_merged.html")
+    """Redirect to advanced frontend"""
+    return RedirectResponse(url="/index_advanced.html")
+
+
+@app.get("/index_advanced.html")
+async def serve_advanced_frontend():
+    """Serve the advanced frontend HTML with all features"""
+    html_path = PARENT_DIR / "index_advanced.html"
+    if not html_path.exists():
+        raise HTTPException(status_code=404, detail="Frontend file not found")
+    return FileResponse(html_path)
 
 
 @app.get("/index_merged.html")
@@ -280,7 +289,7 @@ def search_keyword(
     lang: str = Query("en", description="Language code")
 ):
     """
-    Search for a keyword in video transcripts
+    Search for a keyword in video transcripts with full context
     
     Args:
         video_id: Video identifier (file_id from upload)
@@ -288,24 +297,51 @@ def search_keyword(
         lang: Language code for search (default: en)
         
     Returns:
-        JSON with search results including timestamps
+        JSON with search results including timestamps and text
     """
     lang = lang.lower()
     if lang not in SUPPORTED_LANGS:
         raise HTTPException(status_code=400, detail=f"Unsupported language: {lang}")
     
     try:
-        hits = index_manager.search(video_id, lang, q)
+        # Get timestamp hits from index
+        timestamp_hits = index_manager.search(video_id, lang, q)
+        
+        # Load VTT to get full text context
+        from vtt_utils import parse_vtt
+        vtt_path = SUBTITLE_DIR / f"{video_id}.{lang}.vtt"
+        
+        if not vtt_path.exists():
+            raise HTTPException(status_code=404, detail=f"Subtitles not found for video={video_id} lang={lang}")
+        
+        vtt_text = vtt_path.read_text(encoding="utf-8")
+        cues = parse_vtt(vtt_text)
+        
+        # Match timestamps to cues and return full context
+        results = []
+        for ts in timestamp_hits:
+            # Find the cue that contains this timestamp
+            for start, end, text in cues:
+                if start <= ts < end:
+                    results.append({
+                        "start": start,
+                        "end": end,
+                        "text": text
+                    })
+                    break
+        
         return {
             "video_id": video_id,
             "lang": lang,
             "keyword": q,
-            "hits": hits,
-            "count": len(hits)
+            "hits": results,
+            "count": len(results)
         }
     except FileNotFoundError as e:
         raise HTTPException(status_code=404, detail=str(e))
     except Exception as e:
+        import traceback
+        traceback.print_exc()
         raise HTTPException(status_code=500, detail=f"Search failed: {str(e)}")
 
 
