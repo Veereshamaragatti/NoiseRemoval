@@ -1,0 +1,428 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Player - Translate Audio</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      margin: 0;
+      padding: 20px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+    }
+    .container {
+      max-width: 1000px;
+      margin: 0 auto;
+      background: white;
+      padding: 30px;
+      border-radius: 12px;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+    }
+    h2 {
+      color: #333;
+      margin-top: 0;
+    }
+    .controls {
+      margin-top: 20px;
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .btn {
+      padding: 10px 20px;
+      border-radius: 6px;
+      background: #667eea;
+      color: white;
+      border: none;
+      cursor: pointer;
+      font-size: 15px;
+      transition: background 0.3s;
+    }
+    .btn:hover {
+      background: #5568d3;
+    }
+    .btn:disabled {
+      background: #999;
+      cursor: not-allowed;
+    }
+    .btn-secondary {
+      background: #48bb78;
+    }
+    .btn-secondary:hover {
+      background: #38a169;
+    }
+    .small {
+      font-size: 0.9rem;
+      color: #666;
+    }
+    video {
+      width: 100%;
+      max-width: 900px;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+    .modal {
+      display: none;
+      position: fixed;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.5);
+      z-index: 1000;
+    }
+    .modal-content {
+      background: white;
+      width: 90%;
+      max-width: 450px;
+      margin: 80px auto;
+      padding: 25px;
+      border-radius: 12px;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+    }
+    .modal h3 {
+      margin-top: 0;
+      color: #333;
+    }
+    .form-group {
+      margin: 15px 0;
+    }
+    .form-group label {
+      display: block;
+      margin-bottom: 5px;
+      color: #555;
+      font-weight: 500;
+    }
+    .form-group input,
+    .form-group select {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      font-size: 14px;
+      box-sizing: border-box;
+    }
+    .form-group input[readonly] {
+      background: #f5f5f5;
+    }
+    .modal-buttons {
+      margin-top: 20px;
+      display: flex;
+      gap: 10px;
+    }
+    .btn-cancel {
+      background: #e53e3e;
+    }
+    .btn-cancel:hover {
+      background: #c53030;
+    }
+    .back-link {
+      display: inline-block;
+      margin-top: 30px;
+      color: #667eea;
+      text-decoration: none;
+      font-size: 16px;
+    }
+    .back-link:hover {
+      text-decoration: underline;
+    }
+    .status-message {
+      margin-top: 10px;
+      padding: 10px;
+      border-radius: 6px;
+      display: none;
+    }
+    .status-success {
+      background: #c6f6d5;
+      color: #22543d;
+      border: 1px solid #9ae6b4;
+    }
+    .status-error {
+      background: #fed7d7;
+      color: #742a2a;
+      border: 1px solid #fc8181;
+    }
+    .status-info {
+      background: #bee3f8;
+      color: #2c5282;
+      border: 1px solid #90cdf4;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>🎬 Original Video</h2>
+    <video id="video" controls crossorigin="anonymous">
+      <source src="{{ url_for('uploaded_file', filename=filename) }}" type="video/mp4">
+      Your browser does not support video.
+    </video>
+
+    <div class="controls">
+      <button class="btn btn-secondary" id="openTranscribe">📝 Transcribe Audio</button>
+      <button class="btn" id="openTranslate">🌍 Translate Audio</button>
+      <span id="status" class="small" style="margin-left: auto; align-self: center;"></span>
+    </div>
+
+    <div id="statusMessage" class="status-message"></div>
+
+    <!-- Transcribe modal -->
+    <div id="transcribeModal" class="modal">
+      <div class="modal-content">
+        <h3>📝 Transcribe Audio</h3>
+        <p>This will generate subtitles in the original language of the video.</p>
+        <div id="transcribeStatus" class="small" style="margin-top: 15px; color: #666;"></div>
+        <div class="modal-buttons">
+          <button id="doTranscribe" class="btn">Start Transcription</button>
+          <button id="cancelTranscribe" class="btn btn-cancel">Cancel</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Translate modal -->
+    <div id="translateModal" class="modal">
+      <div class="modal-content">
+        <h3>🌍 Translate Audio</h3>
+        <div class="form-group">
+          <label>From (detected):</label>
+          <input id="fromLang" type="text" readonly placeholder="auto-detect">
+        </div>
+        <div class="form-group">
+          <label>To:</label>
+          <select id="toLang">
+            {% for code, info in supported_langs.items() %}
+              <option value="{{ code }}">{{ info.name }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div id="translateStatus" class="small" style="margin-top: 15px; color: #666;"></div>
+        <div class="modal-buttons">
+          <button id="doTranslate" class="btn">Translate</button>
+          <button id="cancelTranslate" class="btn btn-cancel">Cancel</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- translated audio track used for dub playback -->
+    <audio id="dubAudio" preload="auto"></audio>
+
+    <a href="/" class="back-link">⬅ Back to Upload</a>
+  </div>
+
+  <script>
+    const openTranscribe = document.getElementById("openTranscribe");
+    const openTranslate = document.getElementById("openTranslate");
+    const transcribeModal = document.getElementById("transcribeModal");
+    const translateModal = document.getElementById("translateModal");
+    const cancelTranscribe = document.getElementById("cancelTranscribe");
+    const cancelTranslate = document.getElementById("cancelTranslate");
+    const doTranscribe = document.getElementById("doTranscribe");
+    const doTranslate = document.getElementById("doTranslate");
+    const fromLang = document.getElementById("fromLang");
+    const toLang = document.getElementById("toLang");
+    const transcribeStatus = document.getElementById("transcribeStatus");
+    const translateStatus = document.getElementById("translateStatus");
+    const status = document.getElementById("status");
+    const statusMessage = document.getElementById("statusMessage");
+    const video = document.getElementById("video");
+    const dubAudio = document.getElementById("dubAudio");
+    const filename = "{{ filename }}";
+
+    let detectedLanguage = null;
+
+    function showStatus(message, type = 'info') {
+      statusMessage.textContent = message;
+      statusMessage.className = 'status-message status-' + type;
+      statusMessage.style.display = 'block';
+      setTimeout(() => {
+        statusMessage.style.display = 'none';
+      }, 5000);
+    }
+
+    // Transcribe functionality
+    openTranscribe.addEventListener("click", () => {
+      transcribeModal.style.display = "block";
+      transcribeStatus.textContent = "";
+    });
+
+    cancelTranscribe.addEventListener("click", () => {
+      transcribeModal.style.display = "none";
+    });
+
+    doTranscribe.addEventListener("click", async () => {
+      transcribeStatus.textContent = "🔄 Transcribing audio — this may take some time...";
+      doTranscribe.disabled = true;
+
+      try {
+        const res = await fetch("/transcribe", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ filename: filename })
+        });
+        const js = await res.json();
+        
+        if (!js.ok) {
+          transcribeStatus.textContent = "❌ Error: " + (js.error || "unknown");
+          doTranscribe.disabled = false;
+          return;
+        }
+
+        detectedLanguage = js.detected_source_language;
+        transcribeStatus.textContent = "✅ Transcription complete! Detected language: " + js.language_name;
+        status.textContent = "Original subtitles loaded (" + js.language_name + ")";
+        
+        // Remove any existing transcription track
+        const existingTrack = document.querySelector("#video track[data-transcribe='true']");
+        if (existingTrack) existingTrack.remove();
+
+        // Add transcription track
+        const track = document.createElement("track");
+        track.kind = "subtitles";
+        track.label = "Original (" + js.language_name + ")";
+        track.srclang = js.detected_source_language;
+        track.src = js.vtt;
+        track.setAttribute("data-transcribe", "true");
+        track.default = true;
+        video.appendChild(track);
+
+        // Load track
+        track.addEventListener("load", () => {
+          track.mode = "showing";
+        });
+
+        showStatus("✅ Transcription successful! Subtitles added.", "success");
+        
+        setTimeout(() => {
+          transcribeModal.style.display = "none";
+          doTranscribe.disabled = false;
+        }, 1500);
+
+      } catch (err) {
+        transcribeStatus.textContent = "❌ Unexpected error: " + err;
+        doTranscribe.disabled = false;
+        showStatus("❌ Transcription failed: " + err, "error");
+      }
+    });
+
+    // Translate functionality
+    openTranslate.addEventListener("click", () => {
+      translateModal.style.display = "block";
+      translateStatus.textContent = "";
+      fromLang.value = detectedLanguage ? detectedLanguage.toUpperCase() : "Auto (will detect)";
+    });
+
+    cancelTranslate.addEventListener("click", () => {
+      translateModal.style.display = "none";
+    });
+
+    doTranslate.addEventListener("click", async () => {
+      const to = toLang.value;
+      translateStatus.textContent = "🔄 Working — this may take some time for long videos...";
+      doTranslate.disabled = true;
+
+      try {
+        const res = await fetch("/translate", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ filename: filename, to: to })
+        });
+        const js = await res.json();
+        
+        if (!js.ok) {
+          translateStatus.textContent = "❌ Error: " + (js.error || "unknown");
+          doTranslate.disabled = false;
+          return;
+        }
+
+        detectedLanguage = js.detected_source_language;
+        translateStatus.textContent = "✅ Translation complete. Detected source: " + js.detected_source_language;
+        status.textContent = "Loaded translation: " + toLang.options[toLang.selectedIndex].text;
+        
+        // Remove any existing translated track
+        const existingTrack = document.querySelector("#video track[data-generated='true']");
+        if (existingTrack) existingTrack.remove();
+
+        const track = document.createElement("track");
+        track.kind = "subtitles";
+        track.label = toLang.options[toLang.selectedIndex].text;
+        track.srclang = to;
+        track.src = js.vtt;
+        track.setAttribute("data-generated", "true");
+        track.default = true;
+        video.appendChild(track);
+
+        // Load track
+        track.addEventListener("load", () => {
+          track.mode = "showing";
+        });
+
+        // Load TTS mp3 if available
+        if (js.mp3) {
+          dubAudio.src = js.mp3;
+          setupDubSync();
+        } else {
+          dubAudio.src = "";
+        }
+
+        showStatus("✅ Translation successful! Audio dub added.", "success");
+        
+        setTimeout(() => {
+          translateModal.style.display = "none";
+          doTranslate.disabled = false;
+        }, 1500);
+
+      } catch (err) {
+        translateStatus.textContent = "❌ Unexpected error: " + err;
+        doTranslate.disabled = false;
+        showStatus("❌ Translation failed: " + err, "error");
+      }
+    });
+
+    function setupDubSync() {
+      // Remove previous listeners to avoid duplicates
+      video.removeEventListener("play", playDub);
+      video.removeEventListener("pause", pauseDub);
+      video.removeEventListener("seeked", seekDub);
+      video.removeEventListener("timeupdate", syncDub);
+
+      // Setup sync events
+      video.addEventListener("play", playDub);
+      video.addEventListener("pause", pauseDub);
+      video.addEventListener("seeked", seekDub);
+      video.addEventListener("timeupdate", syncDub);
+    }
+
+    function playDub() {
+      if (dubAudio.src) {
+        dubAudio.currentTime = video.currentTime;
+        dubAudio.play().catch(e => console.log(e));
+        video.muted = true;
+      }
+    }
+
+    function pauseDub() {
+      if (dubAudio.src) dubAudio.pause();
+    }
+
+    function seekDub() {
+      if (dubAudio.src) dubAudio.currentTime = video.currentTime;
+    }
+
+    function syncDub() {
+      if (dubAudio.src && Math.abs(video.currentTime - dubAudio.currentTime) > 0.3) {
+        dubAudio.currentTime = video.currentTime;
+      }
+    }
+
+    // Close modals when clicking outside
+    window.addEventListener("click", (e) => {
+      if (e.target === transcribeModal) {
+        transcribeModal.style.display = "none";
+      }
+      if (e.target === translateModal) {
+        translateModal.style.display = "none";
+      }
+    });
+  </script>
+</body>
+</html>
