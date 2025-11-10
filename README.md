@@ -65,7 +65,72 @@ This project uses cutting-edge AI models (DeepFilterNet3 & Facebook Denoiser) to
 
 ---
 
-## 💻 System Requirements
+## � Project Structure
+
+```
+NoiseRemoval/
+├── 📄 README.md                    # Main documentation (this file)
+├── 📄 SETUP.md                     # Installation guide
+├── 📄 HANDOVER.md                  # Project handover summary
+├── 📄 CHANGELOG.md                 # Version history
+├── 📄 LICENSE                      # MIT License
+├── 📄 requirements.txt             # Python dependencies (CPU)
+├── 📄 requirements-gpu.txt         # Python dependencies (GPU)
+├── 📄 .gitignore                   # Git ignore rules
+│
+├── 🌐 index.html                   # Web interface (frontend)
+├── 🐍 deepfilternet_denoise.py     # Standalone CLI script
+│
+├── 📂 backend/                     # FastAPI backend
+│   ├── app.py                      # Main API server
+│   ├── process_video.py            # Video processing pipeline
+│   ├── __init__.py                 # Python module init
+│   ├── README.md                   # Backend documentation
+│   ├── uploads/                    # Temporary uploaded videos
+│   │   └── .gitkeep
+│   ├── outputs/                    # Processed videos
+│   │   └── .gitkeep
+│   ├── subtitles/                  # (Future feature)
+│   └── transcripts/                # (Future feature)
+│
+├── 📂 noise/                       # Python virtual environment
+│   ├── pyvenv.cfg                  # Virtual env config
+│   ├── Scripts/                    # Python executables
+│   │   ├── activate                # Unix activation
+│   │   ├── activate.bat            # Windows activation
+│   │   ├── Activate.ps1            # PowerShell activation
+│   │   └── python.exe              # Python interpreter
+│   ├── Lib/                        # Python packages
+│   │   └── site-packages/          # Installed dependencies
+│   ├── Include/                    # C headers
+│   ├── share/                      # Shared resources
+│   └── third_party/                # External tools
+│       └── ffmpeg/                 # FFmpeg binaries
+│           └── ffmpeg-8.0-essentials_build/
+│               └── bin/
+│                   ├── ffmpeg.exe  # Video processing
+│                   └── ffprobe.exe # Media info
+│
+└── 📂 __pycache__/                 # Python cache (auto-generated)
+```
+
+### Key Files Explained
+
+| File/Folder | Purpose |
+|-------------|---------|
+| `index.html` | User-facing web interface with upload/download |
+| `backend/app.py` | REST API server (FastAPI) |
+| `backend/process_video.py` | AI noise removal pipeline |
+| `deepfilternet_denoise.py` | Standalone script for CLI usage |
+| `noise/` | Virtual environment with all dependencies |
+| `backend/uploads/` | Temporary storage for uploaded videos |
+| `backend/outputs/` | Processed videos ready for download |
+| `requirements.txt` | CPU-only dependencies |
+| `requirements-gpu.txt` | GPU-accelerated dependencies |
+
+---
+
+## �💻 System Requirements
 
 ### **Minimum Requirements (CPU Mode)**
 - **OS**: Windows 10/11, Linux, macOS
@@ -203,35 +268,7 @@ open index.html
 
 ---
 
-## 📁 Project Structure
-
-```
-NoiseRemoval/
-├── 📄 index.html                    # Frontend web interface
-├── 📄 deepfilternet_denoise.py      # Original standalone script
-├── 📄 README.md                     # This file
-│
-├── 📁 backend/                      # FastAPI backend
-│   ├── app.py                       # Main FastAPI server
-│   ├── process_video.py             # Video processing pipeline
-│   ├── __init__.py                  # Python package marker
-│   ├── README.md                    # Backend documentation
-│   ├── uploads/                     # Temporary upload storage
-│   └── outputs/                     # Processed video storage
-│
-└── 📁 noise/                        # Virtual environment
-    ├── Scripts/                     # Python executables
-    ├── Lib/site-packages/           # Installed packages
-    └── third_party/
-        └── ffmpeg/                  # FFmpeg binaries
-            └── ffmpeg-8.0-essentials_build/
-                └── bin/
-                    └── ffmpeg.exe   # Video processing tool
-```
-
----
-
-## 🔬 How It Works
+##  How It Works
 
 ### **Processing Pipeline (7 Steps)**
 
