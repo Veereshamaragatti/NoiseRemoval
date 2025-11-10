@@ -480,6 +480,8 @@
 
             <div class="player-wrapper">
                 <video id="videoPlayer" controls crossorigin="anonymous"></video>
+                <!-- Hidden audio element for dubbed audio playback -->
+                <audio id="dubbedAudio" preload="auto" style="display: none;"></audio>
             </div>
 
             <div class="video-controls">
@@ -729,10 +731,14 @@
             const selector = document.getElementById('audioTrackSelector');
             const trackButtons = document.getElementById('trackButtons');
             const searchLangSelect = document.getElementById('searchLang');
+            const dubbedAudio = document.getElementById('dubbedAudio');
+            const video = document.getElementById('videoPlayer');
 
             selector.style.display = 'block';
             trackButtons.innerHTML = '';
             searchLangSelect.innerHTML = '';
+            
+            let currentAudioTrack = null;
 
             tracks.forEach((track, index) => {
                 // Add subtitle track to video
@@ -740,23 +746,44 @@
                 trackElement.kind = 'subtitles';
                 trackElement.label = track.label;
                 trackElement.srclang = track.lang;
-                trackElement.src = track.url;
+                trackElement.src = track.vtt_url;
                 if (index === 0) trackElement.default = true;
-                document.getElementById('videoPlayer').appendChild(trackElement);
+                video.appendChild(trackElement);
 
                 // Add button
                 const btn = document.createElement('button');
                 btn.className = 'track-btn' + (index === 0 ? ' active' : '');
-                btn.textContent = track.label;
+                btn.textContent = track.label + (track.audio_url ? ' 🎵' : '');
+                btn.title = track.audio_url ? `${track.label} (with dubbed audio)` : track.label;
+                
                 btn.onclick = () => {
                     document.querySelectorAll('.track-btn').forEach(b => b.classList.remove('active'));
                     btn.classList.add('active');
                     
-                    // Show this track
-                    const video = document.getElementById('videoPlayer');
+                    // Show this subtitle track
                     Array.from(video.textTracks).forEach((t, i) => {
                         t.mode = i === index ? 'showing' : 'hidden';
                     });
+                    
+                    // Handle dubbed audio if available
+                    if (track.audio_url) {
+                        // Load and play dubbed audio
+                        dubbedAudio.src = track.audio_url;
+                        dubbedAudio.load();
+                        
+                        // Mute original video audio
+                        video.muted = true;
+                        
+                        // Sync audio with video
+                        setupAudioSync(video, dubbedAudio);
+                        currentAudioTrack = track.lang;
+                    } else {
+                        // Stop dubbed audio and unmute video
+                        dubbedAudio.pause();
+                        dubbedAudio.src = '';
+                        video.muted = false;
+                        currentAudioTrack = null;
+                    }
                 };
                 trackButtons.appendChild(btn);
 
@@ -766,6 +793,37 @@
                 option.textContent = track.label;
                 searchLangSelect.appendChild(option);
             });
+        }
+        
+        function setupAudioSync(video, audio) {
+            // Remove old event listeners to avoid duplicates
+            const newVideo = video.cloneNode(true);
+            video.parentNode.replaceChild(newVideo, video);
+            
+            const syncAudio = () => {
+                if (Math.abs(newVideo.currentTime - audio.currentTime) > 0.3) {
+                    audio.currentTime = newVideo.currentTime;
+                }
+            };
+            
+            newVideo.addEventListener('play', () => {
+                audio.currentTime = newVideo.currentTime;
+                audio.play().catch(e => console.log('Audio play failed:', e));
+            });
+            
+            newVideo.addEventListener('pause', () => {
+                audio.pause();
+            });
+            
+            newVideo.addEventListener('seeked', () => {
+                audio.currentTime = newVideo.currentTime;
+            });
+            
+            newVideo.addEventListener('timeupdate', syncAudio);
+            
+            // Update the global reference
+            const videoPlayerCard = document.getElementById('videoPlayerCard');
+            videoPlayerCard.querySelector('video').replaceWith(newVideo);
         }
 
         // Download buttons

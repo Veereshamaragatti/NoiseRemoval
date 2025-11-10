@@ -35,9 +35,10 @@ UPLOAD_DIR = BASE_DIR / "uploads"
 OUTPUT_DIR = BASE_DIR / "outputs"
 SUBTITLE_DIR = BASE_DIR / "subtitles"
 TRANSCRIPT_DIR = BASE_DIR / "transcripts"
+AUDIO_DIR = BASE_DIR / "audio"  # For TTS audio files
 
 # Create directories if they don't exist
-for directory in [UPLOAD_DIR, OUTPUT_DIR, SUBTITLE_DIR, TRANSCRIPT_DIR]:
+for directory in [UPLOAD_DIR, OUTPUT_DIR, SUBTITLE_DIR, TRANSCRIPT_DIR, AUDIO_DIR]:
     os.makedirs(directory, exist_ok=True)
 
 # Supported languages for transcription
@@ -58,6 +59,7 @@ SUPPORTED_LANGS = {
 
 # Mount static file directories
 app.mount("/subtitles", StaticFiles(directory=str(SUBTITLE_DIR)), name="subtitles")
+app.mount("/audio", StaticFiles(directory=str(AUDIO_DIR)), name="audio")
 
 # Initialize search index manager
 index_manager = SearchIndexManager(vtt_root=SUBTITLE_DIR)
@@ -214,7 +216,8 @@ async def upload_video(
                     {
                         "lang": lang,
                         "label": SUPPORTED_LANGS.get(lang, lang),
-                        "url": f"/subtitles/{file_id}.{lang}.vtt"
+                        "vtt_url": f"/subtitles/{file_id}.{lang}.vtt",
+                        "audio_url": f"/audio/{file_id}.{lang}.mp3" if lang in result.get('audio_files', {}) else None
                     }
                     for lang in result['transcript_langs']
                 ]

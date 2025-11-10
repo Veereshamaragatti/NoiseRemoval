@@ -79,7 +79,30 @@ def process_video(
         }
     """
     print(f"🎬 Starting video processing: {input_video}")
-    print(f"⚙️ Settings: GPU={'Enabled' if use_gpu else 'Disabled'}, Facebook Denoiser={'Enabled' if use_facebook_denoiser else 'Disabled'}, Transcription={'Enabled' if enable_transcription else 'Disabled'}")
+    
+    # Determine device based on user choice
+    if use_gpu and torch.cuda.is_available():
+        device = torch.device("cuda")
+        device_name = torch.cuda.get_device_name(0)
+        print(f"🚀 GPU MODE ENABLED - Using: {device_name}")
+        print(f"   ✓ DeepFilterNet will use GPU")
+        if use_facebook_denoiser and FACEBOOK_DENOISER_AVAILABLE:
+            print(f"   ✓ Facebook Denoiser will use GPU")
+        if enable_transcription:
+            print(f"   ✓ Whisper transcription will use GPU")
+    else:
+        device = torch.device("cpu")
+        if use_gpu and not torch.cuda.is_available():
+            print(f"⚠️  GPU requested but CUDA not available")
+        print(f"🖥️  CPU MODE - Processing will be slower")
+        print(f"   ✓ All models will use CPU")
+    
+    print(f"⚙️  Settings:")
+    print(f"   • Facebook Denoiser: {'Enabled' if use_facebook_denoiser else 'Disabled'}")
+    print(f"   • Transcription: {'Enabled' if enable_transcription else 'Disabled'}")
+    if enable_transcription:
+        print(f"   • Languages: {', '.join(transcription_langs)}")
+    print()
     
     if transcription_langs is None:
         transcription_langs = ["en"]
@@ -99,23 +122,14 @@ def process_video(
         )
 
         # === STEP 2: Denoising ===
-        # Set device based on user choice
-        if use_gpu and torch.cuda.is_available():
-            device = torch.device("cuda")
-            print(f"🚀 Using GPU (CUDA) for processing...")
-        else:
-            device = torch.device("cpu")
-            if use_gpu and not torch.cuda.is_available():
-                print(f"⚠️ GPU requested but not available. Using CPU instead...")
-            else:
-                print(f"🚀 Using CPU for processing...")
+        print("🔊 Starting audio denoising pipeline...")
         
         if torch.cuda.is_available():
             torch.cuda.empty_cache()  # Clear any GPU memory
 
         # DeepFilterNet stage (if available)
         if DEEPFILTERNET_AVAILABLE:
-            print("🔊 Removing noise with DeepFilterNet...")
+            print(f"   → DeepFilterNet on {device.type.upper()}...")
             model, df_state, _ = init_df()
             model = model.to(device)
             # Ensure model is actually on the correct device
@@ -127,13 +141,14 @@ def process_video(
             enh = enhance(model, df_state, a, pad=True)
             stage1 = os.path.join(temp_dir, "stage1.wav")
             save_audio(stage1, enh, sr=ModelParams().sr)
+            print(f"   ✓ DeepFilterNet complete")
         else:
-            print("⚠️  Skipping DeepFilterNet (not installed)")
+            print("   ⚠️  Skipping DeepFilterNet (not installed)")
             stage1 = temp_audio
 
         # Facebook Denoiser (optional, uses more memory)
         if use_facebook_denoiser and FACEBOOK_DENOISER_AVAILABLE:
-            print("🧠 Facebook Denoiser (non-stationary)...")
+            print(f"   → Facebook Denoiser on {device.type.upper()}...")
             dns = pretrained.dns64().to(device)
             wav, sr = torchaudio.load(stage1)
             wav = convert_audio(wav.to(device), sr, dns.sample_rate, dns.chin).unsqueeze(0)
@@ -141,11 +156,12 @@ def process_video(
                 out = dns(wav)[0]
             stage2 = os.path.join(temp_dir, "stage2.wav")
             torchaudio.save(stage2, out.cpu() if device.type == "cuda" else out, dns.sample_rate)
+            print(f"   ✓ Facebook Denoiser complete")
         else:
             if use_facebook_denoiser and not FACEBOOK_DENOISER_AVAILABLE:
-                print("⚠️  Facebook Denoiser requested but not installed")
+                print("   ⚠️  Facebook Denoiser requested but not installed")
             else:
-                print("⚡ Skipping Facebook Denoiser (memory-efficient mode)...")
+                print("   ⊗ Skipping Facebook Denoiser (disabled)")
             stage2 = stage1  # Use previous stage output directly
 
         # === STEP 3: Speech-aware gating + EQ ===
@@ -263,31 +279,36 @@ def process_video(
         
         if enable_transcription:
             try:
-                print("🎙️ Starting transcription...")
-                from transcribe import transcribe_to_vtt_many
+                print("🎙️ Starting transcription and TTS generation...")
+                from transcribe import transcribe_and_generate_audio
                 
                 # Generate video_id if not provided
                 if video_id is None:
                     video_id = Path(output_path).stem
                 
-                # Set VTT directory
-                vtt_dir = Path(__file__).parent / "subtitles"
-                vtt_dir.mkdir(exist_ok=True)
+                # Set output directory
+                output_dir = Path(__file__).parent
                 
-                # Transcribe the processed video
-                vtt_files = transcribe_to_vtt_many(
-                    output_path, 
-                    vtt_dir, 
+                # Transcribe and generate TTS audio (using same GPU setting as noise removal)
+                result_files = transcribe_and_generate_audio(
+                    output_path,
+                    output_dir,
                     transcription_langs,
-                    video_id
+                    video_id,
+                    use_gpu=use_gpu  # Pass GPU setting to Whisper
                 )
                 
-                result['transcript_langs'] = list(vtt_files.keys())
-                result['vtt_files'] = vtt_files
-                print(f"✅ Transcription complete for languages: {', '.join(vtt_files.keys())}")
+                result['transcript_langs'] = list(result_files["subtitles"].keys())
+                result['vtt_files'] = result_files["subtitles"]
+                result['audio_files'] = result_files.get("audio", {})
+                print(f"✅ Transcription complete for languages: {', '.join(result_files['subtitles'].keys())}")
+                if result_files.get("audio"):
+                    print(f"✅ TTS audio generated for: {', '.join(result_files['audio'].keys())}")
                 
             except Exception as e:
                 print(f"⚠️ Transcription failed: {str(e)}")
+                import traceback
+                traceback.print_exc()
                 result['transcription_error'] = str(e)
         
         # Return statistics
