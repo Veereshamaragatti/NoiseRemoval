@@ -30,15 +30,26 @@ FFMPEG_CMD = str(FFMPEG_PATH) if FFMPEG_PATH.exists() else "ffmpeg"
 AudioSegment.converter = FFMPEG_CMD
 
 
-def process_video(input_video: str, output_path: str, use_gpu: bool = False, use_facebook_denoiser: bool = False) -> dict:
+def process_video(
+    input_video: str, 
+    output_path: str, 
+    use_gpu: bool = False, 
+    use_facebook_denoiser: bool = False,
+    enable_transcription: bool = False,
+    transcription_langs: list = None,
+    video_id: str = None
+) -> dict:
     """
-    Process video: AI noise removal + silence trimming + sync
+    Process video: AI noise removal + silence trimming + sync + optional transcription
     
     Args:
         input_video: Path to input video file
         output_path: Path where the cleaned video should be saved
         use_gpu: Whether to use GPU (CUDA) for processing. Default False (CPU only)
         use_facebook_denoiser: Whether to use Facebook Denoiser (requires more memory). Default False
+        enable_transcription: Whether to generate transcripts and subtitles. Default False
+        transcription_langs: List of language codes for transcription. Default ["en"]
+        video_id: Video identifier for transcript files. Default None (auto-generated)
         
     Returns:
         dict: {
@@ -46,11 +57,16 @@ def process_video(input_video: str, output_path: str, use_gpu: bool = False, use
             'original_duration': float,
             'processed_duration': float,
             'silence_removed_percent': float,
-            'segments_removed': int
+            'segments_removed': int,
+            'transcription_enabled': bool,
+            'transcript_langs': list (optional)
         }
     """
     print(f"🎬 Starting video processing: {input_video}")
-    print(f"⚙️ Settings: GPU={'Enabled' if use_gpu else 'Disabled'}, Facebook Denoiser={'Enabled' if use_facebook_denoiser else 'Disabled'}")
+    print(f"⚙️ Settings: GPU={'Enabled' if use_gpu else 'Disabled'}, Facebook Denoiser={'Enabled' if use_facebook_denoiser else 'Disabled'}, Transcription={'Enabled' if enable_transcription else 'Disabled'}")
+    
+    if transcription_langs is None:
+        transcription_langs = ["en"]
     
     temp_dir = tempfile.mkdtemp()
     
@@ -213,14 +229,47 @@ def process_video(input_video: str, output_path: str, use_gpu: bool = False, use
 
         print(f"✅ Video processing complete: {output_path}")
         
-        # Return statistics
-        return {
+        # === STEP 8: Optional Transcription ===
+        result = {
             'output_path': output_path,
             'original_duration': round(original_duration, 2),
             'processed_duration': round(processed_duration, 2),
             'silence_removed_percent': round(silence_removed_percent, 2),
-            'segments_removed': segments_removed
+            'segments_removed': segments_removed,
+            'transcription_enabled': enable_transcription
         }
+        
+        if enable_transcription:
+            try:
+                print("🎙️ Starting transcription...")
+                from transcribe import transcribe_to_vtt_many
+                
+                # Generate video_id if not provided
+                if video_id is None:
+                    video_id = Path(output_path).stem
+                
+                # Set VTT directory
+                vtt_dir = Path(__file__).parent / "subtitles"
+                vtt_dir.mkdir(exist_ok=True)
+                
+                # Transcribe the processed video
+                vtt_files = transcribe_to_vtt_many(
+                    output_path, 
+                    vtt_dir, 
+                    transcription_langs,
+                    video_id
+                )
+                
+                result['transcript_langs'] = list(vtt_files.keys())
+                result['vtt_files'] = vtt_files
+                print(f"✅ Transcription complete for languages: {', '.join(vtt_files.keys())}")
+                
+            except Exception as e:
+                print(f"⚠️ Transcription failed: {str(e)}")
+                result['transcription_error'] = str(e)
+        
+        # Return statistics
+        return result
         
     finally:
         # === STEP 8: Cleanup everything ===

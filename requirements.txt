@@ -6,6 +6,10 @@ torchaudio>=2.0.0
 deepfilternet>=0.5.6
 denoiser>=0.1.5
 
+# Speech-to-Text & Translation
+openai-whisper>=20231117
+deep-translator>=1.11.4
+
 # Audio Processing Libraries
 librosa>=0.10.0
 soundfile>=0.12.1
