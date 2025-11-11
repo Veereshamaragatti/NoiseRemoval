@@ -74,16 +74,27 @@ def translate_segments(segments: List[Dict[str, Any]], target_lang: str) -> List
     print(f"🔁 Translating subtitles to {target_lang}...")
     translator = GoogleTranslator(source='auto', target=target_lang)
     out = []
-    delim = " ||| "
-    joined = delim.join([s["text"] for s in segments])
-
-    try:
-        translated = translator.translate(joined)
-        parts = [p.strip() for p in translated.split("|||")]
-        if len(parts) != len(segments):
-            raise ValueError("Batch translation mismatch — using fallback")
-    except Exception as e:
-        print(f"⚠️ Batch translation failed for {target_lang}: {e}")
+    
+    # Indic languages often have issues with batch translation delimiters
+    # Use individual translation for better reliability
+    indic_languages = ['hi', 'kn', 'te', 'ta', 'ml', 'mr', 'gu', 'bn', 'pa', 'or', 'ur']
+    use_individual = target_lang in indic_languages
+    
+    if not use_individual:
+        # Try batch translation for non-Indic languages
+        delim = " ||| "
+        joined = delim.join([s["text"] for s in segments])
+        try:
+            translated = translator.translate(joined)
+            parts = [p.strip() for p in translated.split("|||")]
+            if len(parts) != len(segments):
+                raise ValueError("Batch translation mismatch — using fallback")
+        except Exception as e:
+            print(f"⚠️ Batch translation failed for {target_lang}: {e}, using individual translation")
+            use_individual = True
+    
+    if use_individual:
+        # Individual translation (used for Indic languages and batch fallback)
         parts = []
         for s in segments:
             try:
