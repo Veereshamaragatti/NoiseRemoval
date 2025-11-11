@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -13,13 +13,14 @@
 
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: #0a0a0a;
             min-height: 100vh;
             padding: 20px;
+            color: #ffffff;
         }
 
         .container {
-            max-width: 1200px;
+            max-width: 1400px;
             margin: 0 auto;
         }
 
@@ -27,43 +28,53 @@
             text-align: center;
             color: white;
             margin-bottom: 30px;
+            background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+            padding: 30px;
+            border-radius: 15px;
+            border: 2px solid #333;
         }
 
         .header h1 {
             font-size: 2.5rem;
             margin-bottom: 10px;
+            background: linear-gradient(135deg, #ffffff 0%, #cccccc 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
         }
 
         .header p {
             font-size: 1.1rem;
-            opacity: 0.9;
+            color: #999;
         }
 
         .card {
-            background: white;
+            background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
             border-radius: 12px;
             padding: 30px;
             margin-bottom: 20px;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+            border: 2px solid #333;
         }
 
         .upload-section {
-            border: 2px dashed #667eea;
+            border: 2px dashed #666;
             border-radius: 8px;
             padding: 40px;
             text-align: center;
             cursor: pointer;
             transition: all 0.3s;
+            background: #1a1a1a;
         }
 
         .upload-section:hover {
-            border-color: #764ba2;
-            background: #f8f9fa;
+            border-color: #999;
+            background: #2d2d2d;
         }
 
         .upload-section.drag-over {
-            background: #e7e9fc;
-            border-color: #5568d3;
+            background: #333;
+            border-color: #aaa;
         }
 
         .file-input {
@@ -72,19 +83,19 @@
 
         .upload-icon {
             font-size: 48px;
-            color: #667eea;
+            color: #fff;
             margin-bottom: 20px;
         }
 
         .upload-text {
             font-size: 18px;
-            color: #333;
+            color: #fff;
             margin-bottom: 10px;
         }
 
         .upload-hint {
             font-size: 14px;
-            color: #666;
+            color: #999;
         }
 
         .options-grid {
@@ -95,16 +106,16 @@
         }
 
         .option-card {
-            background: #f8f9fa;
+            background: #1a1a1a;
             border-radius: 8px;
             padding: 20px;
-            border: 2px solid transparent;
+            border: 2px solid #333;
             transition: all 0.3s;
         }
 
         .option-card.selected {
-            border-color: #667eea;
-            background: #e7e9fc;
+            border-color: #fff;
+            background: #2d2d2d;
         }
 
         .option-card label {
@@ -123,30 +134,33 @@
 
         .option-desc {
             font-size: 13px;
-            color: #666;
+            color: #999;
             margin-top: 8px;
             padding-left: 30px;
         }
 
         .btn {
-            background: #667eea;
-            color: white;
+            background: linear-gradient(135deg, #ffffff 0%, #e0e0e0 100%);
+            color: #000;
             border: none;
             padding: 12px 30px;
             border-radius: 6px;
             font-size: 16px;
+            font-weight: 600;
             cursor: pointer;
             transition: all 0.3s;
+            box-shadow: 0 4px 10px rgba(255, 255, 255, 0.2);
         }
 
         .btn:hover {
-            background: #5568d3;
+            background: linear-gradient(135deg, #e0e0e0 0%, #c0c0c0 100%);
             transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+            box-shadow: 0 6px 15px rgba(255, 255, 255, 0.3);
         }
 
         .btn:disabled {
-            background: #ccc;
+            background: #444;
+            color: #666;
             cursor: not-allowed;
             transform: none;
         }
@@ -164,7 +178,7 @@
         .progress-bar {
             width: 100%;
             height: 30px;
-            background: #e0e0e0;
+            background: #2d2d2d;
             border-radius: 15px;
             overflow: hidden;
             margin-bottom: 10px;
@@ -172,25 +186,51 @@
 
         .progress-fill {
             height: 100%;
-            background: linear-gradient(90deg, #667eea, #764ba2);
+            background: linear-gradient(90deg, #ffffff, #e0e0e0);
             width: 0%;
             transition: width 0.3s;
             display: flex;
             align-items: center;
             justify-content: center;
-            color: white;
+            color: #000;
             font-weight: bold;
         }
 
         .progress-text {
             text-align: center;
-            color: #666;
+            color: #999;
             font-size: 14px;
         }
 
         .video-player {
             display: none;
             margin-top: 20px;
+        }
+
+        /* New Layout: Video + Transcript Side by Side */
+        .video-transcript-container {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .video-section {
+            flex: 1;
+            min-width: 0; /* Allow flex shrinking */
+        }
+
+        .transcript-section {
+            flex: 0 0 380px;
+            min-height: 500px;
+        }
+
+        @media (max-width: 1200px) {
+            .video-transcript-container {
+                flex-direction: column;
+            }
+            .transcript-section {
+                flex: 1;
+            }
         }
 
         .player-wrapper {
@@ -215,7 +255,7 @@
 
         .audio-track-selector {
             display: none;
-            background: #f8f9fa;
+            background: #1a1a1a;
             border-radius: 8px;
             padding: 15px;
             margin-top: 15px;
@@ -223,7 +263,7 @@
 
         .audio-track-selector h4 {
             margin-bottom: 10px;
-            color: #333;
+            color: #fff;
         }
 
         .track-buttons {
@@ -234,9 +274,9 @@
 
         .track-btn {
             padding: 8px 16px;
-            border: 2px solid #667eea;
-            background: white;
-            color: #667eea;
+            border: 2px solid #666;
+            background: #2d2d2d;
+            color: #fff;
             border-radius: 6px;
             cursor: pointer;
             transition: all 0.3s;
@@ -244,18 +284,19 @@
         }
 
         .track-btn.active {
-            background: #667eea;
-            color: white;
+            background: #fff;
+            color: #000;
+            border-color: #fff;
         }
 
         .track-btn:hover {
-            background: #667eea;
-            color: white;
+            background: #444;
+            border-color: #999;
         }
 
         .search-section {
-            display: none;
-            background: #f8f9fa;
+            display: none !important; /* Hidden - use transcript search instead */
+            background: #1a1a1a;
             border-radius: 8px;
             padding: 20px;
             margin-top: 15px;
@@ -270,14 +311,16 @@
         .search-input {
             flex: 1;
             padding: 10px 15px;
-            border: 2px solid #ddd;
+            border: 2px solid #666;
             border-radius: 6px;
             font-size: 14px;
+            background: #2d2d2d;
+            color: #fff;
         }
 
         .search-input:focus {
             outline: none;
-            border-color: #667eea;
+            border-color: #999;
         }
 
         .search-results {
@@ -286,33 +329,34 @@
         }
 
         .search-result-item {
-            background: white;
+            background: #2d2d2d;
             padding: 12px;
             margin-bottom: 8px;
             border-radius: 6px;
             cursor: pointer;
             transition: all 0.3s;
-            border-left: 3px solid #667eea;
+            border-left: 3px solid #fff;
         }
 
         .search-result-item:hover {
-            background: #e7e9fc;
+            background: #444;
             transform: translateX(5px);
         }
 
         .result-time {
-            color: #667eea;
+            color: #fff;
             font-weight: bold;
             margin-bottom: 4px;
         }
 
         .result-text {
-            color: #333;
+            color: #ccc;
             font-size: 14px;
         }
 
         .highlight {
-            background: yellow;
+            background: #ffff00;
+            color: #000;
             font-weight: bold;
         }
 
@@ -324,21 +368,22 @@
         }
 
         .stat-card {
-            background: #f8f9fa;
+            background: #1a1a1a;
             padding: 15px;
             border-radius: 6px;
             text-align: center;
+            border: 1px solid #333;
         }
 
         .stat-value {
             font-size: 24px;
             font-weight: bold;
-            color: #667eea;
+            color: #fff;
         }
 
         .stat-label {
             font-size: 12px;
-            color: #666;
+            color: #999;
             margin-top: 4px;
         }
 
@@ -362,14 +407,16 @@
             display: flex;
             align-items: center;
             padding: 8px;
-            background: #f8f9fa;
+            background: #1a1a1a;
             border-radius: 6px;
             cursor: pointer;
             transition: all 0.3s;
+            border: 1px solid #333;
         }
 
         .lang-checkboxes label:hover {
-            background: #e7e9fc;
+            background: #2d2d2d;
+            border-color: #666;
         }
 
         .lang-checkboxes input {
@@ -384,28 +431,387 @@
         }
 
         .alert-success {
-            background: #d4edda;
-            color: #155724;
-            border: 1px solid #c3e6cb;
+            background: #1a4d2e;
+            color: #a8e6a1;
+            border: 1px solid #2d5f3f;
         }
 
         .alert-error {
-            background: #f8d7da;
-            color: #721c24;
-            border: 1px solid #f5c6cb;
+            background: #4d1a1a;
+            color: #e6a1a1;
+            border: 1px solid #5f2d2d;
         }
 
         .alert-info {
-            background: #d1ecf1;
-            color: #0c5460;
-            border: 1px solid #bee5eb;
+            background: #1a3a4d;
+            color: #a1d4e6;
+            border: 1px solid #2d4d5f;
+        }
+
+        /* Q&A and Transcript Sections - Black & White Theme */
+        .qa-summary-container {
+            display: block; /* Changed from flex to block for full width Q&A */
+            margin-top: 20px;
+        }
+
+        @media (max-width: 968px) {
+            .qa-summary-container {
+                display: block;
+            }
+        }
+
+        .qa-card {
+            width: 100%; /* Full width below video */
+            background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+            border: 2px solid #444;
+            border-radius: 12px;
+            padding: 25px;
+            color: #fff;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+            transition: all 0.3s ease;
+        }
+
+        .qa-card:hover {
+            border-color: #666;
+            box-shadow: 0 12px 30px rgba(255, 255, 255, 0.1);
+            transform: translateY(-2px);
+        }
+
+        .transcript-card {
+            background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+            border: 2px solid #444;
+            border-radius: 12px;
+            padding: 20px;
+            color: #fff;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+            transition: all 0.3s ease;
+            height: 100%;
+        }
+
+        .transcript-card:hover {
+            border-color: #666;
+            box-shadow: 0 12px 30px rgba(255, 255, 255, 0.1);
+        }
+
+        .section-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #444;
+        }
+
+        .section-title {
+            font-size: 1.4em;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: #fff;
+        }
+
+        .btn-generate {
+            background: linear-gradient(135deg, #ffffff 0%, #e0e0e0 100%);
+            color: #000;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 10px rgba(255, 255, 255, 0.2);
+        }
+
+        .btn-generate:hover:not(:disabled) {
+            background: linear-gradient(135deg, #e0e0e0 0%, #c0c0c0 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(255, 255, 255, 0.3);
+        }
+
+        .btn-generate:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .chat-container {
+            max-height: 400px;
+            overflow-y: auto;
+            padding: 15px;
+            background: #000;
+            border-radius: 10px;
+            border: 2px solid #333;
+            margin-bottom: 15px;
+            min-height: 200px;
+        }
+
+        .chat-container::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .chat-container::-webkit-scrollbar-track {
+            background: #1a1a1a;
+            border-radius: 4px;
+        }
+
+        .chat-container::-webkit-scrollbar-thumb {
+            background: #666;
+            border-radius: 4px;
+        }
+
+        .chat-container::-webkit-scrollbar-thumb:hover {
+            background: #888;
+        }
+
+        .message {
+            margin: 10px 0;
+            padding: 12px 15px;
+            border-radius: 10px;
+            animation: fadeIn 0.3s ease;
+            max-width: 85%;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .user-message {
+            background: linear-gradient(135deg, #ffffff 0%, #e0e0e0 100%);
+            color: #000;
+            margin-left: auto;
+            border: 1px solid #ccc;
+        }
+
+        .assistant-message {
+            background: linear-gradient(135deg, #2d2d2d 0%, #1a1a1a 100%);
+            color: #fff;
+            margin-right: auto;
+            border: 1px solid #444;
+        }
+
+        .input-group {
+            display: flex;
+            gap: 10px;
+        }
+
+        .input-group input {
+            flex: 1;
+            padding: 12px;
+            border: 2px solid #444;
+            border-radius: 8px;
+            background: #000;
+            color: #fff;
+            font-size: 1em;
+        }
+
+        .input-group input:focus {
+            outline: none;
+            border-color: #666;
+            box-shadow: 0 0 10px rgba(255, 255, 255, 0.1);
+        }
+
+        .summary-content {
+            color: #ddd;
+            line-height: 1.8;
+        }
+
+        .summary-section {
+            margin-bottom: 25px;
+        }
+
+        .summary-section h4 {
+            font-size: 1.2em;
+            margin-bottom: 12px;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .summary-text {
+            background: #000;
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid #333;
+            margin-bottom: 10px;
+        }
+
+        .key-point {
+            background: linear-gradient(135deg, #2d2d2d 0%, #1a1a1a 100%);
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            border-left: 4px solid #666;
+            transition: all 0.3s ease;
+        }
+
+        .key-point:hover {
+            border-left-color: #999;
+            transform: translateX(5px);
+        }
+
+        .minute-item {
+            background: #000;
+            padding: 10px;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            border: 1px solid #333;
+            display: flex;
+            align-items: start;
+            gap: 10px;
+        }
+
+        .minute-badge {
+            background: linear-gradient(135deg, #ffffff 0%, #e0e0e0 100%);
+            color: #000;
+            padding: 4px 10px;
+            border-radius: 15px;
+            font-weight: 600;
+            font-size: 0.85em;
+            min-width: 75px;
+            text-align: center;
+        }
+
+        .tip-box {
+            background: linear-gradient(135deg, #2d2d2d 0%, #1a1a1a 100%);
+            border-left: 4px solid #666;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            color: #ccc;
+            font-size: 0.9em;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: #999;
+        }
+
+        .loading-spinner {
+            border: 4px solid #333;
+            border-top: 4px solid #fff;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .prose p {
+            margin: 8px 0;
+        }
+
+        .prose strong {
+            color: #fff;
+        }
+
+        /* Transcript Panel Styles */
+        .transcript-search {
+            margin-bottom: 15px;
+        }
+
+        .transcript-search input {
+            width: 100%;
+            padding: 10px 15px;
+            border: 2px solid #444;
+            border-radius: 8px;
+            background: #000;
+            color: #fff;
+            font-size: 0.95em;
+        }
+
+        .transcript-search input:focus {
+            outline: none;
+            border-color: #666;
+        }
+
+        .transcript-list {
+            max-height: 500px;
+            overflow-y: auto;
+            padding-right: 10px;
+        }
+
+        .transcript-list::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .transcript-list::-webkit-scrollbar-track {
+            background: #1a1a1a;
+            border-radius: 3px;
+        }
+
+        .transcript-list::-webkit-scrollbar-thumb {
+            background: #666;
+            border-radius: 3px;
+        }
+
+        .transcript-list::-webkit-scrollbar-thumb:hover {
+            background: #888;
+        }
+
+        .transcript-cue {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 12px;
+            padding: 10px;
+            border-radius: 6px;
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+
+        .transcript-cue:hover {
+            background: #2d2d2d;
+        }
+
+        .transcript-cue.active {
+            background: #2d2d2d;
+            border-left: 3px solid #fff;
+            padding-left: 7px;
+        }
+
+        .transcript-timestamp {
+            color: #4a9eff;
+            font-weight: 600;
+            font-size: 0.9em;
+            min-width: 60px;
+            flex-shrink: 0;
+        }
+
+        .transcript-text {
+            color: #ccc;
+            line-height: 1.6;
+            font-size: 0.95em;
+        }
+
+        .transcript-cue.highlight .transcript-text {
+            background: #ffff00;
+            color: #000;
+            padding: 2px 4px;
+            border-radius: 3px;
+        }
+
+        .chapter-label {
+            background: #2d2d2d;
+            padding: 8px 12px;
+            border-radius: 6px;
+            margin: 15px 0 10px 0;
+            font-weight: 600;
+            color: #fff;
+            font-size: 0.9em;
+            border-left: 3px solid #4a9eff;
         }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="header">
-            <h1>🎬 AI Video Processing Suite</h1>
+            <h1>AI Video Processing Suite</h1>
             <p>Noise Removal • Silence Detection • Multi-Language Transcription • Keyword Search</p>
         </div>
 
@@ -414,25 +820,25 @@
 
         <!-- Upload Section -->
         <div class="card">
-            <h2>📤 Upload Video</h2>
+            <h2>Upload Video</h2>
             <div class="upload-section" id="uploadSection">
-                <div class="upload-icon">📁</div>
+                <div class="upload-icon">+</div>
                 <div class="upload-text">Click to select or drag and drop</div>
                 <div class="upload-hint">Supported formats: MP4, AVI, MOV, MKV, WebM</div>
                 <input type="file" id="fileInput" class="file-input" accept="video/*,audio/*">
             </div>
-            <div id="fileName" style="margin-top: 15px; text-align: center; color: #666;"></div>
+            <div id="fileName" style="margin-top: 15px; text-align: center; color: #999;"></div>
         </div>
 
         <!-- Processing Options -->
         <div class="card">
-            <h2>⚙️ Processing Options</h2>
+            <h2>Processing Options</h2>
             
             <div class="options-grid">
                 <div class="option-card selected" id="gpuOption">
                     <label>
                         <input type="checkbox" id="useGPU" checked>
-                        <span>🚀 Use GPU (CUDA)</span>
+                        <span> Use GPU (CUDA)</span>
                     </label>
                     <div class="option-desc">5-10x faster processing with NVIDIA GPU</div>
                 </div>
@@ -440,7 +846,7 @@
                 <div class="option-card selected" id="denoiserOption">
                     <label>
                         <input type="checkbox" id="useFBDenoiser" checked>
-                        <span>🧠 Facebook Denoiser</span>
+                        <span> Facebook Denoiser</span>
                     </label>
                     <div class="option-desc">Advanced noise removal (uses more memory)</div>
                 </div>
@@ -448,7 +854,7 @@
                 <div class="option-card selected" id="transcriptionOption">
                     <label>
                         <input type="checkbox" id="enableTranscription" checked>
-                        <span>📝 Enable Transcription</span>
+                        <span> Enable Transcription</span>
                     </label>
                     <div class="option-desc">Generate subtitles with auto language detection</div>
                 </div>
@@ -456,11 +862,11 @@
 
             <!-- Language Selection -->
             <div class="lang-selector" id="langSelector">
-                <label>🌍 Transcription Languages (Select all you need):</label>
+                <label>Transcription Languages (Select all you need):</label>
                 <div class="lang-checkboxes" id="langCheckboxes"></div>
             </div>
 
-            <button class="btn btn-full" id="processBtn" disabled>🎬 Start Processing</button>
+            <button class="btn btn-full" id="processBtn" disabled> Start Processing</button>
 
             <!-- Progress -->
             <div class="progress-section" id="progressSection">
@@ -473,38 +879,117 @@
 
         <!-- Video Player -->
         <div class="card video-player" id="videoPlayerCard">
-            <h2>🎥 Processed Video</h2>
+            <h2>Processed Video</h2>
             
             <!-- Statistics -->
             <div class="stats-grid" id="statsGrid"></div>
 
-            <div class="player-wrapper">
-                <video id="videoPlayer" controls crossorigin="anonymous"></video>
-                <!-- Hidden audio element for dubbed audio playback -->
-                <audio id="dubbedAudio" preload="auto" style="display: none;"></audio>
-            </div>
+            <!-- New Layout: Video on Left, Transcript on Right -->
+            <div class="video-transcript-container">
+                <!-- Video Section (Left) -->
+                <div class="video-section">
+                    <div class="player-wrapper">
+                        <video id="videoPlayer" controls crossorigin="anonymous"></video>
+                        <!-- Hidden audio element for dubbed audio playback -->
+                        <audio id="dubbedAudio" preload="auto" style="display: none;"></audio>
+                    </div>
 
             <div class="video-controls">
-                <button class="btn" id="downloadBtn">⬇️ Download Processed Video</button>
-                <button class="btn" id="downloadOriginalBtn">⬇️ Download Original</button>
-                <button class="btn" id="toggleSearchBtn">🔍 Search Subtitles</button>
+                <button class="btn" id="downloadBtn">Download Processed</button>
+                <button class="btn" id="downloadOriginalBtn">Download Original</button>
+                <button class="btn" id="toggleQASummaryBtn">Q&A Panel</button>
             </div>
 
             <!-- Audio Track Selector -->
             <div class="audio-track-selector" id="audioTrackSelector">
-                <h4>🎵 Select Audio/Subtitle Language:</h4>
+                <h4>Select Audio/Subtitle Language:</h4>
                 <div class="track-buttons" id="trackButtons"></div>
             </div>
+                </div>
+                <!-- End Video Section -->
+
+                <!-- Transcript Section (Right) -->
+                <div class="transcript-section">
+                    <div class="transcript-card">
+                        <div class="section-header">
+                            <div class="section-title">
+                                <span></span>
+                                <span>Transcript</span>
+                            </div>
+                            <select id="transcriptLangSelect" class="btn-generate" style="font-size: 0.9em; padding: 8px 15px; cursor: pointer;">
+                                <option value="en">English</option>
+                            </select>
+                        </div>
+
+                        <div class="transcript-search">
+                            <input 
+                                type="text" 
+                                id="transcriptSearchInput" 
+                                placeholder="Search in transcript..."
+                                oninput="searchTranscript()"
+                            />
+                        </div>
+
+                        <div class="transcript-list" id="transcriptList">
+                            <div class="empty-state">
+                                <div style="font-size: 3em; margin-bottom: 10px; opacity: 0.3;"></div>
+                                <p>Transcript will appear here...</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- End Transcript Section -->
+            </div>
+            <!-- End video-transcript-container -->
 
             <!-- Search Section -->
             <div class="search-section" id="searchSection">
-                <h4>🔍 Search in Subtitles</h4>
+                <h4> Search in Subtitles</h4>
                 <div class="search-box">
                     <input type="text" id="searchInput" class="search-input" placeholder="Enter keyword to search...">
                     <select id="searchLang" class="search-input" style="flex: 0 0 150px;"></select>
                     <button class="btn" id="searchBtn">Search</button>
                 </div>
                 <div class="search-results" id="searchResults"></div>
+            </div>
+
+            <!-- Q&A and Transcript Section -->
+            <div class="qa-summary-container" id="qaSummaryContainer" style="display: none;">
+                <!-- Q&A Panel -->
+                <div class="qa-card">
+                    <div class="section-header">
+                        <div class="section-title">
+                            <span></span>
+                            <span>Ask Questions</span>
+                        </div>
+                        <button class="btn-generate" id="clearChatBtn" style="font-size: 0.9em; padding: 8px 15px;">
+                            Clear
+                        </button>
+                    </div>
+
+                    <div class="tip-box">
+                        <strong>Tip:</strong> Ask timestamp-based questions like "What did they say about AI at minute 5?" or "Summarize what happens at 10:30"
+                    </div>
+
+                    <div class="chat-container" id="chatContainer">
+                        <div class="empty-state">
+                            <div style="font-size: 3em; margin-bottom: 10px; opacity: 0.3;"></div>
+                            <p>Ask questions about the video content...</p>
+                        </div>
+                    </div>
+
+                    <div class="input-group">
+                        <input 
+                            type="text" 
+                            id="questionInput" 
+                            placeholder="Ask about the video content..."
+                            onkeypress="if(event.key === 'Enter') askQuestion()"
+                        />
+                        <button class="btn-generate" id="askBtn">
+                            Send
+                        </button>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -599,7 +1084,7 @@
 
         function handleFileSelect(file) {
             currentFile = file;
-            fileName.textContent = `📹 Selected: ${file.name} (${(file.size / 1024 / 1024).toFixed(2)} MB)`;
+            fileName.textContent = `Selected: ${file.name} (${(file.size / 1024 / 1024).toFixed(2)} MB)`;
             processBtn.disabled = false;
             showAlert(`File "${file.name}" selected. Ready to process!`, 'success');
         }
@@ -666,11 +1151,11 @@
 
                 // Display results
                 displayVideoPlayer(result);
-                showAlert('✅ Video processed successfully!', 'success');
+                showAlert(' Video processed successfully!', 'success');
 
             } catch (error) {
                 console.error('Processing error:', error);
-                showAlert(`❌ Error: ${error.message}`, 'error');
+                showAlert(` Error: ${error.message}`, 'error');
                 updateProgress(0, 'Processing failed');
             } finally {
                 processBtn.disabled = false;
@@ -725,6 +1210,11 @@
             if (result.transcription && result.transcription.tracks) {
                 setupTranscriptionTracks(result.transcription.tracks);
             }
+
+            // Load transcript for Q&A panel
+            if (currentVideoId && availableLanguages.length > 0) {
+                loadTranscript(currentVideoId, availableLanguages[0]);
+            }
         }
 
         function setupTranscriptionTracks(tracks) {
@@ -753,7 +1243,7 @@
                 // Add button
                 const btn = document.createElement('button');
                 btn.className = 'track-btn' + (index === 0 ? ' active' : '');
-                btn.textContent = track.label + (track.audio_url ? ' 🎵' : '');
+                btn.textContent = track.label + (track.audio_url ? ' ' : '');
                 btn.title = track.audio_url ? `${track.label} (with dubbed audio)` : track.label;
                 
                 btn.onclick = () => {
@@ -839,11 +1329,13 @@
             }
         });
 
-        // Search functionality
+        // Search functionality (Hidden - using transcript search instead)
+        /*
         document.getElementById('toggleSearchBtn').addEventListener('click', () => {
             const searchSection = document.getElementById('searchSection');
             searchSection.style.display = searchSection.style.display === 'none' ? 'block' : 'none';
         });
+        */
 
         document.getElementById('searchBtn').addEventListener('click', performSearch);
         document.getElementById('searchInput').addEventListener('keypress', (e) => {
@@ -857,7 +1349,7 @@
 
             if (!keyword || !currentVideoId) return;
 
-            resultsDiv.innerHTML = '<div style="text-align: center; padding: 20px;">🔄 Searching...</div>';
+            resultsDiv.innerHTML = '<div style="text-align: center; padding: 20px;"> Searching...</div>';
 
             try {
                 const response = await fetch(`/api/search?video_id=${currentVideoId}&q=${encodeURIComponent(keyword)}&lang=${lang}`);
@@ -897,8 +1389,318 @@
             return text.replace(regex, '<span class="highlight">$1</span>');
         }
 
+        // ========== Q&A AND SUMMARY FUNCTIONS ==========
+        
+        // Toggle Q&A panel (Transcript is always visible)
+        const toggleQASummaryBtn = document.getElementById('toggleQASummaryBtn');
+        const qaSummaryContainer = document.getElementById('qaSummaryContainer');
+        
+        toggleQASummaryBtn.addEventListener('click', () => {
+            if (qaSummaryContainer.style.display === 'none') {
+                qaSummaryContainer.style.display = 'block';
+                toggleQASummaryBtn.textContent = 'Hide Q&A Panel';
+            } else {
+                qaSummaryContainer.style.display = 'none';
+                toggleQASummaryBtn.textContent = 'Q&A Panel';
+            }
+        });
+
+        // Transcript functionality
+        let currentTranscript = [];
+        const transcriptList = document.getElementById('transcriptList');
+        const transcriptSearchInput = document.getElementById('transcriptSearchInput');
+        const transcriptLangSelect = document.getElementById('transcriptLangSelect');
+
+        async function loadTranscript(videoId, lang = 'en') {
+            try {
+                const response = await fetch(`http://localhost:8001/subtitles/${videoId}.${lang}.vtt`);
+                if (!response.ok) {
+                    throw new Error('Transcript not found');
+                }
+                
+                const vttText = await response.text();
+                currentTranscript = parseVTT(vttText);
+                renderTranscript(currentTranscript);
+                
+                // Update language selector
+                updateTranscriptLanguages(videoId);
+            } catch (error) {
+                transcriptList.innerHTML = `
+                    <div class="empty-state">
+                        <p style="color: #ff6b6b;">Transcript not available</p>
+                        <p style="color: #999; font-size: 0.9em; margin-top: 10px;">Make sure transcription was enabled during processing.</p>
+                    </div>
+                `;
+            }
+        }
+
+        function parseVTT(vttText) {
+            const cues = [];
+            const lines = vttText.split('\n');
+            let i = 0;
+            
+            // Skip WEBVTT header
+            while (i < lines.length && !lines[i].includes('-->')) {
+                i++;
+            }
+            
+            while (i < lines.length) {
+                const line = lines[i].trim();
+                
+                if (line.includes('-->')) {
+                    const [start, end] = line.split('-->').map(t => t.trim());
+                    i++;
+                    
+                    // Collect text lines
+                    let text = '';
+                    while (i < lines.length && lines[i].trim() !== '') {
+                        text += lines[i].trim() + ' ';
+                        i++;
+                    }
+                    
+                    if (text.trim()) {
+                        cues.push({
+                            start: start,
+                            startSeconds: timeToSeconds(start),
+                            end: end,
+                            text: text.trim()
+                        });
+                    }
+                }
+                i++;
+            }
+            
+            return cues;
+        }
+
+        function timeToSeconds(timeStr) {
+            const parts = timeStr.split(':');
+            const hours = parseFloat(parts[0]);
+            const minutes = parseFloat(parts[1]);
+            const seconds = parseFloat(parts[2]);
+            return hours * 3600 + minutes * 60 + seconds;
+        }
+
+        function formatTime(timeStr) {
+            // Convert "00:01:23.456" to "1:23"
+            const parts = timeStr.split(':');
+            const hours = parseInt(parts[0]);
+            const minutes = parseInt(parts[1]);
+            const seconds = parseInt(parts[2].split('.')[0]);
+            
+            if (hours > 0) {
+                return `${hours}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+            }
+            return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+        }
+
+        function renderTranscript(cues, searchTerm = '') {
+            if (!cues || cues.length === 0) {
+                transcriptList.innerHTML = `
+                    <div class="empty-state">
+                        <div style="font-size: 3em; margin-bottom: 10px; opacity: 0.3;"></div>
+                        <p>No transcript available</p>
+                    </div>
+                `;
+                return;
+            }
+
+            let html = '';
+            let lastMinute = -1;
+            
+            cues.forEach((cue, index) => {
+                const currentMinute = Math.floor(cue.startSeconds / 60);
+                
+                // Add chapter labels every 5 minutes
+                if (currentMinute !== lastMinute && currentMinute % 5 === 0) {
+                    html += `<div class="chapter-label"> ${currentMinute} minutes</div>`;
+                    lastMinute = currentMinute;
+                }
+                
+                let text = cue.text;
+                let highlight = false;
+                
+                // Highlight search term
+                if (searchTerm) {
+                    const regex = new RegExp(`(${searchTerm})`, 'gi');
+                    if (regex.test(cue.text)) {
+                        text = cue.text.replace(regex, '<mark>$1</mark>');
+                        highlight = true;
+                    }
+                }
+                
+                // Only show matching cues if search is active
+                if (searchTerm && !highlight) {
+                    return;
+                }
+                
+                html += `
+                    <div class="transcript-cue ${highlight ? 'highlight' : ''}" data-time="${cue.startSeconds}" onclick="seekToTime(${cue.startSeconds})">
+                        <div class="transcript-timestamp">${formatTime(cue.start)}</div>
+                        <div class="transcript-text">${text}</div>
+                    </div>
+                `;
+            });
+            
+            if (!html && searchTerm) {
+                html = `
+                    <div class="empty-state">
+                        <p style="color: #999;">No results found for "${searchTerm}"</p>
+                    </div>
+                `;
+            }
+            
+            transcriptList.innerHTML = html;
+        }
+
+        function searchTranscript() {
+            const searchTerm = transcriptSearchInput.value.trim();
+            renderTranscript(currentTranscript, searchTerm);
+        }
+
+        function seekToTime(seconds) {
+            const videoPlayer = document.querySelector('.player-wrapper video');
+            if (videoPlayer) {
+                videoPlayer.currentTime = seconds;
+                videoPlayer.play();
+                
+                // Highlight active cue
+                document.querySelectorAll('.transcript-cue').forEach(cue => {
+                    cue.classList.remove('active');
+                });
+                event.currentTarget.classList.add('active');
+            }
+        }
+
+        async function updateTranscriptLanguages(videoId) {
+            // Populate language selector based on available subtitles
+            const langSelect = document.getElementById('transcriptLangSelect');
+            langSelect.innerHTML = '';
+            
+            for (const lang of availableLanguages) {
+                const option = document.createElement('option');
+                option.value = lang;
+                option.textContent = SUPPORTED_LANGS[lang] || lang.toUpperCase();
+                langSelect.appendChild(option);
+            }
+            
+            langSelect.addEventListener('change', () => {
+                loadTranscript(currentVideoId, langSelect.value);
+            });
+        }
+
+        // Q&A Functions
+        const questionInput = document.getElementById('questionInput');
+        const askBtn = document.getElementById('askBtn');
+        const chatContainer = document.getElementById('chatContainer');
+        const clearChatBtn = document.getElementById('clearChatBtn');
+        let chatMessages = [];
+
+        askBtn.addEventListener('click', askQuestion);
+        clearChatBtn.addEventListener('click', () => {
+            chatMessages = [];
+            chatContainer.innerHTML = `
+                <div class="empty-state">
+                    <div style="font-size: 3em; margin-bottom: 10px; opacity: 0.3;"></div>
+                    <p>Ask questions about the video content...</p>
+                </div>
+            `;
+        });
+
+        async function askQuestion() {
+            const question = questionInput.value.trim();
+            
+            if (!question) return;
+            
+            if (!currentVideoId) {
+                showAlert('Please process a video first', 'error');
+                return;
+            }
+
+            const selectedLang = document.querySelector('.track-btn.active')?.dataset.lang || 'en';
+            
+            // Clear empty state if present
+            const emptyState = chatContainer.querySelector('.empty-state');
+            if (emptyState) {
+                emptyState.remove();
+            }
+
+            // Add user message
+            addMessage('user', question);
+            questionInput.value = '';
+            askBtn.disabled = true;
+
+            // Add loading message
+            const loadingId = 'loading-' + Date.now();
+            chatContainer.innerHTML += `
+                <div class="message assistant-message" id="${loadingId}">
+                    <div class="loading-spinner" style="width: 20px; height: 20px; border-width: 3px; margin: 0 auto 10px;"></div>
+                    Thinking...
+                </div>
+            `;
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+
+            try {
+                const formData = new FormData();
+                formData.append('video_id', currentVideoId);
+                formData.append('question', question);
+                formData.append('lang', selectedLang);
+
+                const response = await fetch('http://localhost:8001/api/ask', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.detail || 'Failed to get answer');
+                }
+
+                const result = await response.json();
+                
+                // Remove loading message
+                document.getElementById(loadingId)?.remove();
+                
+                // Add assistant message
+                addMessage('assistant', result.answer);
+            } catch (error) {
+                document.getElementById(loadingId)?.remove();
+                addMessage('assistant', `Sorry, I encountered an error: ${error.message}`);
+            } finally {
+                askBtn.disabled = false;
+            }
+        }
+
+        function addMessage(role, content) {
+            const messageClass = role === 'user' ? 'user-message' : 'assistant-message';
+            const formattedContent = role === 'assistant' ? formatMarkdown(content) : content;
+            
+            chatContainer.innerHTML += `
+                <div class="message ${messageClass}">
+                    <div class="prose">${formattedContent}</div>
+                </div>
+            `;
+            
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+            chatMessages.push({ role, content });
+        }
+
+        function formatMarkdown(text) {
+            if (!text) return '';
+            
+            // Basic markdown formatting
+            return text
+                .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+                .replace(/\*(.+?)\*/g, '<em>$1</em>')
+                .replace(/\n\n/g, '</p><p>')
+                .replace(/\n/g, '<br>')
+                .replace(/^(.*)$/, '<p>$1</p>');
+        }
+
         // Initialize
         initLangCheckboxes();
     </script>
 </body>
 </html>
+
+

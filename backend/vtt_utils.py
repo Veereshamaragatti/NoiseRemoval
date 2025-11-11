@@ -41,3 +41,25 @@ def parse_vtt(vtt_text: str) -> List[Tuple[float, float, str]]:
             except Exception:
                 continue
     return cues
+
+
+def load_vtt_text(vtt_file_path: str) -> str:
+    """
+    Load VTT file and extract only the text content (no timestamps)
+    
+    Args:
+        vtt_file_path: Path to VTT file
+        
+    Returns:
+        Full text content as single string
+    """
+    with open(vtt_file_path, "r", encoding="utf-8") as f:
+        vtt_content = f.read()
+    
+    # Parse VTT to get cues
+    cues = parse_vtt(vtt_content)
+    
+    # Extract only the text parts
+    text_parts = [text for _, _, text in cues]
+    
+    return " ".join(text_parts)

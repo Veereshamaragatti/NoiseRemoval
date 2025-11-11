@@ -17,6 +17,9 @@ ENV/
 env/
 .venv
 
+# Environment Variables (contains API keys)
+.env
+
 # IDE
 .vscode/
 .idea/

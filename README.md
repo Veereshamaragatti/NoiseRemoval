@@ -1,13 +1,14 @@
 # 🎬 AI Video Processing & Multilingual Transcription System
 
-> **Professional AI-powered video processing pipeline with noise removal, silence trimming, multi-language transcription, dubbed audio generation, and keyword-based search**
+> **Professional AI-powered video processing pipeline with noise removal, silence trimming, multi-language transcription, dubbed audio generation, keyword-based search, and AI-powered Q&A**
 
-This comprehensive system processes videos through multiple AI stages: removes background noise, trims silence, transcribes speech, translates to 12+ languages, generates time-synchronized dubbed audio tracks, and enables keyword-based subtitle search—all through a modern web interface.
+This comprehensive system processes videos through multiple AI stages: removes background noise, trims silence, transcribes speech, translates to 12+ languages, generates time-synchronized dubbed audio tracks, enables keyword-based subtitle search, and provides intelligent Q&A and video summaries—all through a modern web interface.
 
 ![Python](https://img.shields.io/badge/Python-3.8+-blue.svg)
 ![FastAPI](https://img.shields.io/badge/FastAPI-0.119.0-green.svg)
 ![PyTorch](https://img.shields.io/badge/PyTorch-2.0+-red.svg)
 ![Whisper](https://img.shields.io/badge/OpenAI-Whisper-green.svg)
+![Groq](https://img.shields.io/badge/Groq-Llama_3.3_70B-purple.svg)
 ![License](https://img.shields.io/badge/License-MIT-yellow.svg)
 
 ---
@@ -48,6 +49,19 @@ This comprehensive system processes videos through multiple AI stages: removes b
 
 ### 🔍 **Smart Search & Indexing**
 - ✅ **Keyword-Based Search** - Search spoken words across all language tracks
+- ✅ **Full-Text Context** - Returns complete sentences, not just timestamps
+- ✅ **Multi-Language Search** - Search in any transcribed language
+- ✅ **JSON Indexing** - Fast word-to-timestamp mapping
+- ✅ **VTT Cue Matching** - Retrieves full context from subtitle files
+
+### 🤖 **AI-Powered Q&A & Summary** (NEW!)
+- ✅ **Video Summaries** - AI-generated comprehensive overviews
+- ✅ **Key Points Extraction** - Automatic identification of main takeaways
+- ✅ **Minute-by-Minute Breakdown** - Timeline of video content
+- ✅ **Interactive Q&A** - Ask questions about video content
+- ✅ **Timestamp Queries** - "What did they say at minute 5?"
+- ✅ **Context-Aware Responses** - AI references specific video moments
+- ✅ **Groq Llama 3.3 70B** - State-of-the-art language model
 - ✅ **Full-Text Context** - Returns complete sentences, not just timestamps
 - ✅ **Multi-Language Search** - Search in any transcribed language
 - ✅ **JSON Indexing** - Fast word-to-timestamp mapping

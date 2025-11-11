@@ -14,8 +14,14 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 import uvicorn
 
+# Load environment variables from .env file
+from dotenv import load_dotenv
+load_dotenv()
+
 from process_video import process_video
 from search_index import SearchIndexManager
+from groq_api import generate_summary, answer_question, generate_assessment, evaluate_short_answer
+from vtt_utils import parse_vtt, load_vtt_text
 
 app = FastAPI(title="AI Video Processing API")
 
@@ -346,6 +352,185 @@ def search_keyword(
         import traceback
         traceback.print_exc()
         raise HTTPException(status_code=500, detail=f"Search failed: {str(e)}")
+
+
+@app.post("/api/summary/{video_id}")
+async def generate_video_summary(
+    video_id: str,
+    lang: str = Query("en", description="Language code for subtitles")
+):
+    """
+    Generate AI-powered video summary from subtitles
+    
+    Args:
+        video_id: Unique video identifier
+        lang: Language code (default: en)
+        
+    Returns:
+        JSON with summary, minuteByMinute breakdown, and keyPoints
+    """
+    try:
+        # Load subtitle file
+        vtt_file = SUBTITLE_DIR / f"{video_id}.{lang}.vtt"
+        if not vtt_file.exists():
+            raise HTTPException(
+                status_code=404, 
+                detail=f"Subtitle file not found: {vtt_file.name}. Make sure transcription is enabled."
+            )
+        
+        # Extract full text from VTT
+        subtitle_text = load_vtt_text(str(vtt_file))
+        
+        if not subtitle_text.strip():
+            raise HTTPException(status_code=400, detail="Subtitle file is empty")
+        
+        # Generate summary using Groq API
+        summary_data = generate_summary(subtitle_text)
+        
+        return {
+            "status": "success",
+            "video_id": video_id,
+            "language": lang,
+            "data": summary_data
+        }
+    
+    except HTTPException:
+        raise
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=f"Summary generation failed: {str(e)}")
+
+
+@app.post("/api/ask")
+async def ask_question(
+    video_id: str = Form(...),
+    question: str = Form(...),
+    lang: str = Form("en")
+):
+    """
+    Ask questions about video content
+    
+    Args:
+        video_id: Unique video identifier
+        question: User's question about the video
+        lang: Language code (default: en)
+        
+    Returns:
+        JSON with answer in markdown format
+    """
+    try:
+        # Load subtitle file
+        vtt_file = SUBTITLE_DIR / f"{video_id}.{lang}.vtt"
+        if not vtt_file.exists():
+            raise HTTPException(
+                status_code=404, 
+                detail=f"Subtitle file not found: {vtt_file.name}"
+            )
+        
+        # Extract full text from VTT
+        subtitle_text = load_vtt_text(str(vtt_file))
+        
+        if not subtitle_text.strip():
+            raise HTTPException(status_code=400, detail="Subtitle file is empty")
+        
+        # Get answer using Groq API
+        answer = answer_question(subtitle_text, question)
+        
+        return {
+            "status": "success",
+            "question": question,
+            "answer": answer,
+            "video_id": video_id,
+            "language": lang
+        }
+    
+    except HTTPException:
+        raise
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=f"Question answering failed: {str(e)}")
+
+
+@app.post("/api/assessment/{video_id}")
+async def generate_video_assessment(
+    video_id: str,
+    lang: str = Query("en", description="Language code for subtitles")
+):
+    """
+    Generate educational assessment (MCQs + short questions) from video content
+    
+    Args:
+        video_id: Unique video identifier
+        lang: Language code (default: en)
+        
+    Returns:
+        JSON with mcqs and shortQuestions arrays
+    """
+    try:
+        # Load subtitle file
+        vtt_file = SUBTITLE_DIR / f"{video_id}.{lang}.vtt"
+        if not vtt_file.exists():
+            raise HTTPException(
+                status_code=404, 
+                detail=f"Subtitle file not found: {vtt_file.name}"
+            )
+        
+        # Extract full text from VTT
+        subtitle_text = load_vtt_text(str(vtt_file))
+        
+        if not subtitle_text.strip():
+            raise HTTPException(status_code=400, detail="Subtitle file is empty")
+        
+        # Generate assessment using Groq API
+        assessment_data = generate_assessment(subtitle_text)
+        
+        return {
+            "status": "success",
+            "video_id": video_id,
+            "language": lang,
+            "data": assessment_data
+        }
+    
+    except HTTPException:
+        raise
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=f"Assessment generation failed: {str(e)}")
+
+
+@app.post("/api/evaluate")
+async def evaluate_answer(
+    question: str = Form(...),
+    model_answer: str = Form(...),
+    user_answer: str = Form(...)
+):
+    """
+    Evaluate student's short answer against model answer
+    
+    Args:
+        question: The question text
+        model_answer: Expected/model answer
+        user_answer: Student's submitted answer
+        
+    Returns:
+        JSON with score (0-2) and detailed feedback
+    """
+    try:
+        result = evaluate_short_answer(question, model_answer, user_answer)
+        
+        return {
+            "status": "success",
+            "score": result["score"],
+            "feedback": result["feedback"]
+        }
+    
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=f"Evaluation failed: {str(e)}")
 
 
 if __name__ == "__main__":

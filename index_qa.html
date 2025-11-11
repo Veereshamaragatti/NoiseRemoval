@@ -1,0 +1,648 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Video Processing - Q&A & Summary</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+            color: #ffffff;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        header {
+            background: linear-gradient(135deg, #000000 0%, #1a1a1a 100%);
+            padding: 30px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            border: 2px solid #333;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+        }
+
+        h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            background: linear-gradient(135deg, #ffffff 0%, #cccccc 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .subtitle {
+            color: #999;
+            font-size: 1.1em;
+        }
+
+        .main-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        @media (max-width: 1024px) {
+            .main-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .card {
+            background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+            border: 2px solid #333;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+            transition: all 0.3s ease;
+        }
+
+        .card:hover {
+            border-color: #666;
+            box-shadow: 0 12px 30px rgba(255, 255, 255, 0.1);
+            transform: translateY(-2px);
+        }
+
+        .card-title {
+            font-size: 1.5em;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: #fff;
+        }
+
+        .icon {
+            font-size: 1.2em;
+        }
+
+        button {
+            background: linear-gradient(135deg, #ffffff 0%, #e0e0e0 100%);
+            color: #000;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1em;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 10px rgba(255, 255, 255, 0.2);
+        }
+
+        button:hover:not(:disabled) {
+            background: linear-gradient(135deg, #e0e0e0 0%, #c0c0c0 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(255, 255, 255, 0.3);
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        input[type="text"], textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #333;
+            border-radius: 8px;
+            background: #000;
+            color: #fff;
+            font-size: 1em;
+            transition: all 0.3s ease;
+        }
+
+        input[type="text"]:focus, textarea:focus {
+            outline: none;
+            border-color: #666;
+            box-shadow: 0 0 10px rgba(255, 255, 255, 0.1);
+        }
+
+        .message {
+            margin: 10px 0;
+            padding: 15px;
+            border-radius: 10px;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .user-message {
+            background: linear-gradient(135deg, #ffffff 0%, #e0e0e0 100%);
+            color: #000;
+            margin-left: 20%;
+            border: 1px solid #ccc;
+        }
+
+        .assistant-message {
+            background: linear-gradient(135deg, #2d2d2d 0%, #1a1a1a 100%);
+            color: #fff;
+            margin-right: 20%;
+            border: 1px solid #444;
+        }
+
+        .chat-container {
+            max-height: 500px;
+            overflow-y: auto;
+            padding: 15px;
+            background: #000;
+            border-radius: 10px;
+            border: 2px solid #333;
+            margin-bottom: 15px;
+        }
+
+        .chat-container::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .chat-container::-webkit-scrollbar-track {
+            background: #1a1a1a;
+            border-radius: 4px;
+        }
+
+        .chat-container::-webkit-scrollbar-thumb {
+            background: #666;
+            border-radius: 4px;
+        }
+
+        .chat-container::-webkit-scrollbar-thumb:hover {
+            background: #888;
+        }
+
+        .input-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .input-group input {
+            flex: 1;
+        }
+
+        .summary-section {
+            margin-bottom: 25px;
+        }
+
+        .summary-section h3 {
+            font-size: 1.3em;
+            margin-bottom: 15px;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .summary-text {
+            background: #000;
+            padding: 20px;
+            border-radius: 10px;
+            border: 2px solid #333;
+            line-height: 1.8;
+            color: #ddd;
+        }
+
+        .key-point {
+            background: linear-gradient(135deg, #2d2d2d 0%, #1a1a1a 100%);
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 12px;
+            border-left: 4px solid #666;
+            transition: all 0.3s ease;
+        }
+
+        .key-point:hover {
+            border-left-color: #999;
+            transform: translateX(5px);
+        }
+
+        .minute-breakdown {
+            background: #000;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            border: 1px solid #333;
+            display: flex;
+            align-items: start;
+            gap: 10px;
+        }
+
+        .minute-badge {
+            background: linear-gradient(135deg, #ffffff 0%, #e0e0e0 100%);
+            color: #000;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 0.9em;
+            min-width: 80px;
+            text-align: center;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 30px;
+            color: #999;
+        }
+
+        .spinner {
+            border: 4px solid #333;
+            border-top: 4px solid #fff;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .video-info {
+            background: #000;
+            padding: 15px;
+            border-radius: 10px;
+            border: 2px solid #333;
+            margin-bottom: 20px;
+        }
+
+        .video-info p {
+            margin: 5px 0;
+            color: #ddd;
+        }
+
+        .video-info strong {
+            color: #fff;
+        }
+
+        .tip-box {
+            background: linear-gradient(135deg, #2d2d2d 0%, #1a1a1a 100%);
+            border-left: 4px solid #666;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            color: #ccc;
+        }
+
+        .tip-box strong {
+            color: #fff;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .action-buttons button {
+            flex: 1;
+            min-width: 150px;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 50px 20px;
+            color: #666;
+        }
+
+        .empty-state-icon {
+            font-size: 4em;
+            margin-bottom: 20px;
+            opacity: 0.3;
+        }
+
+        .prose {
+            line-height: 1.8;
+        }
+
+        .prose p {
+            margin: 10px 0;
+        }
+
+        .prose strong {
+            color: #fff;
+        }
+
+        .prose ul, .prose ol {
+            margin: 10px 0;
+            padding-left: 25px;
+        }
+
+        .prose li {
+            margin: 5px 0;
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, #2d2d2d 0%, #1a1a1a 100%);
+            color: #fff;
+            border: 2px solid #666;
+        }
+
+        .btn-secondary:hover:not(:disabled) {
+            background: linear-gradient(135deg, #3d3d3d 0%, #2a2a2a 100%);
+            border-color: #888;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🎬 AI Video Q&A & Summary</h1>
+            <p class="subtitle">Powered by Groq Llama 3.3 70B • Ask questions about your video content</p>
+        </header>
+
+        <div class="video-info" id="videoInfo">
+            <p><strong>Video ID:</strong> <span id="currentVideoId">No video selected</span></p>
+            <p><strong>Language:</strong> <span id="currentLang">English</span></p>
+        </div>
+
+        <div class="action-buttons">
+            <button onclick="generateSummary()" id="summaryBtn">
+                📝 Generate Summary
+            </button>
+            <button onclick="showQA()" id="qaBtn" class="btn-secondary">
+                💬 Ask Questions
+            </button>
+        </div>
+
+        <div class="main-grid">
+            <!-- Summary Panel -->
+            <div class="card" id="summaryPanel" style="display: none;">
+                <div class="card-title">
+                    <span class="icon">📋</span>
+                    Video Summary
+                </div>
+
+                <div id="summaryContent">
+                    <div class="loading">
+                        <div class="spinner"></div>
+                        <p>Generating summary...</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Q&A Panel -->
+            <div class="card" id="qaPanel" style="display: none;">
+                <div class="card-title">
+                    <span class="icon">💬</span>
+                    Ask Questions
+                </div>
+
+                <div class="tip-box">
+                    <strong>💡 Tip:</strong> Ask timestamp-based questions like "What did they say about AI at minute 5?" or "Summarize what happens at 10:30"
+                </div>
+
+                <div class="chat-container" id="chatContainer">
+                    <div class="empty-state">
+                        <div class="empty-state-icon">💭</div>
+                        <p>Ask questions about the video content...</p>
+                    </div>
+                </div>
+
+                <div class="input-group">
+                    <input 
+                        type="text" 
+                        id="questionInput" 
+                        placeholder="Ask about the video content..."
+                        onkeypress="if(event.key === 'Enter') askQuestion()"
+                    />
+                    <button onclick="askQuestion()" id="askBtn">
+                        📤 Send
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Get video ID from URL parameter or use default
+        const urlParams = new URLSearchParams(window.location.search);
+        let currentVideoId = urlParams.get('video_id') || '2db11364';
+        let currentLang = urlParams.get('lang') || 'en';
+
+        // Update UI with current video info
+        document.getElementById('currentVideoId').textContent = currentVideoId;
+        document.getElementById('currentLang').textContent = currentLang;
+
+        let summaryData = null;
+        let messages = [];
+
+        async function generateSummary() {
+            const summaryPanel = document.getElementById('summaryPanel');
+            const summaryContent = document.getElementById('summaryContent');
+            const summaryBtn = document.getElementById('summaryBtn');
+            
+            summaryPanel.style.display = 'block';
+            summaryBtn.disabled = true;
+            summaryBtn.textContent = '⏳ Generating...';
+            
+            summaryContent.innerHTML = `
+                <div class="loading">
+                    <div class="spinner"></div>
+                    <p>Generating summary using AI...</p>
+                </div>
+            `;
+
+            try {
+                const response = await fetch(`http://localhost:8001/api/summary/${currentVideoId}?lang=${currentLang}`, {
+                    method: 'POST'
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const result = await response.json();
+                summaryData = result.data;
+                
+                renderSummary(summaryData);
+            } catch (error) {
+                summaryContent.innerHTML = `
+                    <div style="color: #ff6b6b; text-align: center; padding: 30px;">
+                        <p style="font-size: 2em; margin-bottom: 10px;">❌</p>
+                        <p><strong>Error:</strong> ${error.message}</p>
+                        <p style="color: #999; margin-top: 10px;">Make sure the backend server is running and subtitles exist.</p>
+                    </div>
+                `;
+            } finally {
+                summaryBtn.disabled = false;
+                summaryBtn.textContent = '📝 Generate Summary';
+            }
+        }
+
+        function renderSummary(data) {
+            const summaryContent = document.getElementById('summaryContent');
+            
+            let html = '';
+
+            // Overall Summary
+            html += `
+                <div class="summary-section">
+                    <h3>📝 Overall Summary</h3>
+                    <div class="summary-text prose">
+                        ${formatMarkdown(data.summary)}
+                    </div>
+                </div>
+            `;
+
+            // Key Points
+            if (data.keyPoints && data.keyPoints.length > 0) {
+                html += `
+                    <div class="summary-section">
+                        <h3>📌 Key Points</h3>
+                `;
+                data.keyPoints.forEach((point, index) => {
+                    html += `
+                        <div class="key-point">
+                            <strong>${index + 1}.</strong> ${point}
+                        </div>
+                    `;
+                });
+                html += `</div>`;
+            }
+
+            // Minute-by-Minute
+            if (data.minuteByMinute && data.minuteByMinute.length > 0) {
+                html += `
+                    <div class="summary-section">
+                        <h3>⏱️ Minute-by-Minute Breakdown</h3>
+                `;
+                data.minuteByMinute.forEach(minute => {
+                    const match = minute.match(/^(Minute \d+-\d+):\s*(.+)$/);
+                    if (match) {
+                        html += `
+                            <div class="minute-breakdown">
+                                <span class="minute-badge">${match[1]}</span>
+                                <span>${match[2]}</span>
+                            </div>
+                        `;
+                    } else {
+                        html += `
+                            <div class="minute-breakdown">
+                                <span>${minute}</span>
+                            </div>
+                        `;
+                    }
+                });
+                html += `</div>`;
+            }
+
+            summaryContent.innerHTML = html;
+        }
+
+        function showQA() {
+            document.getElementById('qaPanel').style.display = 'block';
+        }
+
+        async function askQuestion() {
+            const input = document.getElementById('questionInput');
+            const question = input.value.trim();
+            
+            if (!question) return;
+
+            const chatContainer = document.getElementById('chatContainer');
+            const askBtn = document.getElementById('askBtn');
+            
+            // Add user message
+            addMessage('user', question);
+            input.value = '';
+            askBtn.disabled = true;
+
+            // Add loading message
+            const loadingId = 'loading-' + Date.now();
+            chatContainer.innerHTML += `
+                <div class="message assistant-message" id="${loadingId}">
+                    <div class="spinner" style="width: 20px; height: 20px; border-width: 3px; margin: 0 auto 10px;"></div>
+                    Thinking...
+                </div>
+            `;
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+
+            try {
+                const formData = new FormData();
+                formData.append('video_id', currentVideoId);
+                formData.append('question', question);
+                formData.append('lang', currentLang);
+
+                const response = await fetch('http://localhost:8001/api/ask', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const result = await response.json();
+                
+                // Remove loading message
+                document.getElementById(loadingId).remove();
+                
+                // Add assistant message
+                addMessage('assistant', result.answer);
+            } catch (error) {
+                document.getElementById(loadingId).remove();
+                addMessage('assistant', `Sorry, I encountered an error: ${error.message}`);
+            } finally {
+                askBtn.disabled = false;
+            }
+        }
+
+        function addMessage(role, content) {
+            const chatContainer = document.getElementById('chatContainer');
+            
+            // Remove empty state if present
+            const emptyState = chatContainer.querySelector('.empty-state');
+            if (emptyState) {
+                emptyState.remove();
+            }
+
+            const messageClass = role === 'user' ? 'user-message' : 'assistant-message';
+            const formattedContent = role === 'assistant' ? formatMarkdown(content) : content;
+            
+            chatContainer.innerHTML += `
+                <div class="message ${messageClass}">
+                    <div class="prose">${formattedContent}</div>
+                </div>
+            `;
+            
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+            
+            messages.push({ role, content });
+        }
+
+        function formatMarkdown(text) {
+            // Basic markdown formatting
+            return text
+                .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+                .replace(/\*(.+?)\*/g, '<em>$1</em>')
+                .replace(/\n\n/g, '</p><p>')
+                .replace(/\n/g, '<br>')
+                .replace(/^(.+)$/, '<p>$1</p>');
+        }
+
+        // Auto-generate summary on page load if video ID is provided
+        if (currentVideoId !== 'No video selected') {
+            setTimeout(() => {
+                generateSummary();
+                showQA();
+            }, 500);
+        }
+    </script>
+</body>
+</html>
