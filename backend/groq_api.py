@@ -126,38 +126,74 @@ Respond in JSON format:
 
 def answer_question(subtitles: str, question: str) -> str:
     """
-    Answer questions about video content based on subtitles
+    Answer questions - both casual conversation and video content queries
     
     Args:
         subtitles: Full subtitle text from VTT file
-        question: User's question about the video
+        question: User's question (can be casual or video-related)
         
     Returns:
         Answer as markdown-formatted string
     """
-    prompt = f"""Based on the following video subtitles, answer the user's question. 
+    # Simple greetings that should get casual responses
+    casual_greetings = ['hi', 'hello', 'hey', 'good morning', 'good afternoon', 'good evening', 'how are you']
+    
+    question_lower = question.lower().strip()
+    
+    # If it's a simple greeting, respond casually
+    if question_lower in casual_greetings:
+        is_video_question = False
+    # If subtitles exist and question is more than 2 words, assume it's about the video
+    elif len(question.split()) > 2 and subtitles:
+        is_video_question = True
+    else:
+        # For short questions, check for video-related keywords
+        video_keywords = [
+            'video', 'minute', 'timestamp', 'say', 'said', 'talk', 'talked', 
+            'mention', 'mentioned', 'discuss', 'discussed', 'explain', 'explained',
+            'show', 'showed', 'demonstrate', 'summarize', 'summary'
+        ]
+        is_video_question = any(keyword in question_lower for keyword in video_keywords)
+    
+    if is_video_question:
+        # Video-related question
+        prompt = f"""Based on the following video content, answer the user's question naturally and conversationally.
 
 IMPORTANT: 
-- If the user asks about a specific time/minute (e.g., "What did they say at minute 5?"), look for content around that timestamp and provide a detailed summary of what was discussed.
-- If the user asks about a topic with a time reference (e.g., "What did they say about AI at minute 10?"), find the relevant section and provide context.
-- If the answer is not in the subtitles, respond with "This information was not mentioned in the video."
-- Always be specific and quote relevant parts when available.
+- Answer as if you watched the video yourself - don't mention "subtitles" or "transcript"
+- If the user asks about a specific time/minute, provide a detailed summary of what was discussed at that moment
+- If the user asks about a topic with a time reference, find the relevant section and provide context
+- If the information is not available in the video, say "This wasn't mentioned in the video"
+- Be specific and provide relevant details from the content
+- Answer in a natural, conversational tone
 
-Subtitles:
+Video Content:
 {subtitles}
 
 Question: {question}"""
 
-    messages = [
-        {
-            "role": "system",
-            "content": "You are a helpful assistant that answers questions based on video transcripts. You can understand timestamp queries and retrieve specific moments from the transcript."
-        },
-        {
-            "role": "user",
-            "content": prompt
-        }
-    ]
+        messages = [
+            {
+                "role": "system",
+                "content": "You are a helpful AI assistant that has watched and understood the video content. Answer questions naturally without mentioning 'subtitles', 'transcript', or technical details about how you got the information. Respond as if you're having a conversation about the video."
+            },
+            {
+                "role": "user",
+                "content": prompt
+            }
+        ]
+    else:
+        # Casual conversation - normal chatbot mode
+        messages = [
+            {
+                "role": "system",
+                "content": "You are a friendly and helpful AI assistant. Respond naturally to casual conversation while also being ready to help with video analysis when needed."
+            },
+            {
+                "role": "user",
+                "content": question
+            }
+        ]
     
     return call_groq(messages, temperature=0.7, max_tokens=2000)
 

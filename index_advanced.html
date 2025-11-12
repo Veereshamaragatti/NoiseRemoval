@@ -1257,22 +1257,31 @@
                     
                     // Handle dubbed audio if available
                     if (track.audio_url) {
+                        // Mute original video audio FIRST
+                        video.muted = true;
+                        
                         // Load and play dubbed audio
                         dubbedAudio.src = track.audio_url;
+                        dubbedAudio.currentTime = video.currentTime;
                         dubbedAudio.load();
-                        
-                        // Mute original video audio
-                        video.muted = true;
                         
                         // Sync audio with video
                         setupAudioSync(video, dubbedAudio);
                         currentAudioTrack = track.lang;
+                        
+                        // If video is playing, play the dubbed audio
+                        if (!video.paused) {
+                            dubbedAudio.play().catch(e => console.log('Audio play failed:', e));
+                        }
                     } else {
                         // Stop dubbed audio and unmute video
                         dubbedAudio.pause();
                         dubbedAudio.src = '';
                         video.muted = false;
                         currentAudioTrack = null;
+                        
+                        // Remove audio sync listeners
+                        removeAudioSync(video, dubbedAudio);
                     }
                 };
                 trackButtons.appendChild(btn);
@@ -1285,35 +1294,70 @@
             });
         }
         
+        let audioSyncHandlers = {
+            play: null,
+            pause: null,
+            seeked: null,
+            timeupdate: null
+        };
+        
+        function removeAudioSync(video, audio) {
+            // Remove existing event listeners
+            if (audioSyncHandlers.play) {
+                video.removeEventListener('play', audioSyncHandlers.play);
+            }
+            if (audioSyncHandlers.pause) {
+                video.removeEventListener('pause', audioSyncHandlers.pause);
+            }
+            if (audioSyncHandlers.seeked) {
+                video.removeEventListener('seeked', audioSyncHandlers.seeked);
+            }
+            if (audioSyncHandlers.timeupdate) {
+                video.removeEventListener('timeupdate', audioSyncHandlers.timeupdate);
+            }
+            
+            // Reset handlers
+            audioSyncHandlers = {
+                play: null,
+                pause: null,
+                seeked: null,
+                timeupdate: null
+            };
+        }
+        
         function setupAudioSync(video, audio) {
-            // Remove old event listeners to avoid duplicates
-            const newVideo = video.cloneNode(true);
-            video.parentNode.replaceChild(newVideo, video);
+            // Remove old listeners first
+            removeAudioSync(video, audio);
             
             const syncAudio = () => {
-                if (Math.abs(newVideo.currentTime - audio.currentTime) > 0.3) {
-                    audio.currentTime = newVideo.currentTime;
+                if (Math.abs(video.currentTime - audio.currentTime) > 0.3) {
+                    audio.currentTime = video.currentTime;
                 }
             };
             
-            newVideo.addEventListener('play', () => {
-                audio.currentTime = newVideo.currentTime;
+            audioSyncHandlers.play = () => {
+                audio.currentTime = video.currentTime;
                 audio.play().catch(e => console.log('Audio play failed:', e));
-            });
+            };
             
-            newVideo.addEventListener('pause', () => {
+            audioSyncHandlers.pause = () => {
                 audio.pause();
-            });
+            };
             
-            newVideo.addEventListener('seeked', () => {
-                audio.currentTime = newVideo.currentTime;
-            });
+            audioSyncHandlers.seeked = () => {
+                audio.currentTime = video.currentTime;
+                if (!video.paused) {
+                    audio.play().catch(e => console.log('Audio play failed:', e));
+                }
+            };
             
-            newVideo.addEventListener('timeupdate', syncAudio);
+            audioSyncHandlers.timeupdate = syncAudio;
             
-            // Update the global reference
-            const videoPlayerCard = document.getElementById('videoPlayerCard');
-            videoPlayerCard.querySelector('video').replaceWith(newVideo);
+            // Add new event listeners
+            video.addEventListener('play', audioSyncHandlers.play);
+            video.addEventListener('pause', audioSyncHandlers.pause);
+            video.addEventListener('seeked', audioSyncHandlers.seeked);
+            video.addEventListener('timeupdate', audioSyncHandlers.timeupdate);
         }
 
         // Download buttons
