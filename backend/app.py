@@ -207,6 +207,7 @@ async def upload_video(
             "video_id": file_id,
             "output_file": f"/download/{output_filename}",
             "original_file": f"/download/{original_filename}",
+            "silence_log_file": f"/download/{file_id}_silence_log.txt",
             "statistics": {
                 "original_duration": result['original_duration'],
                 "processed_duration": result['processed_duration'],

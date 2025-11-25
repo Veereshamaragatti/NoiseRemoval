@@ -1138,6 +1138,7 @@
             <div class="video-controls">
                 <button class="btn" id="downloadBtn">Download Processed</button>
                 <button class="btn" id="downloadOriginalBtn">Download Original</button>
+                <button class="btn" id="downloadSilenceLogBtn">Download Silence Log</button>
                 <button class="btn" id="toggleQASummaryBtn">Q&A Panel</button>
                 <button class="btn" id="toggleAssessmentBtn">Assessment</button>
             </div>
@@ -1265,6 +1266,7 @@
         let availableLanguages = [];
         let processedVideoUrl = null;
         let originalVideoUrl = null;
+        let silenceLogUrl = null;
 
         // Language options
         const SUPPORTED_LANGS = {
@@ -1411,6 +1413,7 @@
                 currentVideoId = result.video_id;
                 processedVideoUrl = result.output_file;
                 originalVideoUrl = result.original_file;
+                silenceLogUrl = result.silence_log_file;
                 availableLanguages = result.transcription?.languages || [];
 
                 // Display results
@@ -1634,6 +1637,14 @@
         document.getElementById('downloadOriginalBtn').addEventListener('click', () => {
             if (originalVideoUrl) {
                 window.open(originalVideoUrl, '_blank');
+            }
+        });
+
+        document.getElementById('downloadSilenceLogBtn').addEventListener('click', () => {
+            if (silenceLogUrl) {
+                window.open(silenceLogUrl, '_blank');
+            } else {
+                showAlert('Silence log not available', 'error');
             }
         });
 

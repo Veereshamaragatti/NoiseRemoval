@@ -228,6 +228,13 @@ def process_video(
         starts = [float(x) for x in re.findall(r"silence_start: (\d+\.?\d*)", text)]
         ends = [float(x) for x in re.findall(r"silence_end: (\d+\.?\d*)", text)]
         dur = librosa.get_duration(filename=clean_audio)
+        
+        # Helper function to format time
+        def format_time(seconds):
+            hours = int(seconds // 3600)
+            minutes = int((seconds % 3600) // 60)
+            secs = seconds % 60
+            return f"{hours:02d}:{minutes:02d}:{secs:06.3f}"
 
         segments, prev = [], 0.0
         silence_duration = 0.0
@@ -250,6 +257,44 @@ def process_video(
         segments_removed = len(starts)
         
         print(f"📊 Statistics: Original={original_duration:.1f}s, Processed={processed_duration:.1f}s, Silence removed={silence_removed_percent:.1f}%")
+        
+        # === Save silence detection log ===
+        output_dir = Path(__file__).parent / "outputs"
+        silence_log_path = output_dir / (f"{video_id}_silence_log.txt" if video_id else "silence_log.txt")
+        os.makedirs(silence_log_path.parent, exist_ok=True)
+        
+        with open(silence_log_path, "w") as log_file:
+            log_file.write("=" * 80 + "\n")
+            log_file.write("SILENCE DETECTION LOG\n")
+            log_file.write("=" * 80 + "\n\n")
+            log_file.write(f"Total Duration: {format_time(dur)}\n")
+            log_file.write(f"Total Silence Segments: {len(starts)}\n")
+            log_file.write(f"Total Silence Removed: {silence_removed_percent:.2f}%\n")
+            log_file.write(f"Original Duration: {format_time(original_duration)}\n")
+            log_file.write(f"Processed Duration: {format_time(processed_duration)}\n\n")
+            log_file.write("-" * 80 + "\n")
+            log_file.write("SILENCE SEGMENTS DETECTED:\n")
+            log_file.write("-" * 80 + "\n\n")
+            
+            for i, (start, end) in enumerate(zip(starts, ends), 1):
+                duration = end - start
+                log_file.write(f"Segment {i}:\n")
+                log_file.write(f"  From: {format_time(start)}\n")
+                log_file.write(f"  To:   {format_time(end)}\n")
+                log_file.write(f"  Duration: {duration:.3f} seconds\n\n")
+            
+            log_file.write("-" * 80 + "\n")
+            log_file.write("RETAINED SEGMENTS:\n")
+            log_file.write("-" * 80 + "\n\n")
+            
+            for i, (start, end) in enumerate(segments, 1):
+                duration = end - start
+                log_file.write(f"Segment {i}:\n")
+                log_file.write(f"  From: {format_time(start)}\n")
+                log_file.write(f"  To:   {format_time(end)}\n")
+                log_file.write(f"  Duration: {duration:.3f} seconds\n\n")
+        
+        print(f"✅ Silence log saved: {silence_log_path}")
 
         # === STEP 5: Trim video and audio per segment ===
         print(f"🎬 Cutting {len(segments)} segments and re-syncing...")
@@ -311,7 +356,8 @@ def process_video(
             'processed_duration': round(processed_duration, 2),
             'silence_removed_percent': round(silence_removed_percent, 2),
             'segments_removed': segments_removed,
-            'transcription_enabled': enable_transcription
+            'transcription_enabled': enable_transcription,
+            'silence_log_path': str(silence_log_path)
         }
         
         if enable_transcription:
