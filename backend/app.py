@@ -123,9 +123,9 @@ def get_langs():
 @app.post("/upload")
 async def upload_video(
     file: UploadFile = File(...),
-    use_gpu: bool = Form(False),
-    use_facebook_denoiser: bool = Form(False),
-    enable_transcription: bool = Form(False),
+    use_gpu: str = Form("false"),
+    use_facebook_denoiser: str = Form("false"),
+    enable_transcription: str = Form("false"),
     transcription_langs: Optional[str] = Form(None)
 ):
     """
@@ -142,9 +142,12 @@ async def upload_video(
         JSON with status and download link
     """
     try:
+        # Convert string form values to boolean
+        use_gpu = use_gpu.lower() in ("true", "on", "yes", "1")
+        use_facebook_denoiser = use_facebook_denoiser.lower() in ("true", "on", "yes", "1")
+        enable_transcription = enable_transcription.lower() in ("true", "on", "yes", "1")
+        
         # Validate file type
-        if not file.filename.lower().endswith(('.mp4', '.avi', '.mov', '.mkv', '.webm', '.wav', '.mp3')):
-            raise HTTPException(status_code=400, detail="Only video/audio files are allowed")
         
         # Generate unique filename
         file_id = str(uuid.uuid4())[:8]

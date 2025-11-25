@@ -79,6 +79,14 @@ def process_video(
         }
     """
     print(f"🎬 Starting video processing: {input_video}")
+    print(f"   use_gpu={use_gpu}, use_facebook_denoiser={use_facebook_denoiser}, enable_transcription={enable_transcription}")
+    
+    # Control CUDA visibility BEFORE any model initialization
+    # Only disable CUDA if user explicitly chose CPU mode
+    if not use_gpu:
+        os.environ["CUDA_VISIBLE_DEVICES"] = ""
+        # Force torch to use CPU only when GPU is not requested
+        torch.cuda.is_available = lambda: False
     
     # Determine device based on user choice
     if use_gpu and torch.cuda.is_available():
@@ -130,18 +138,45 @@ def process_video(
         # DeepFilterNet stage (if available)
         if DEEPFILTERNET_AVAILABLE:
             print(f"   → DeepFilterNet on {device.type.upper()}...")
-            model, df_state, _ = init_df()
-            model = model.to(device)
-            # Ensure model is actually on the correct device
-            for param in model.parameters():
-                param.data = param.data.to(device)
-                if param.grad is not None:
-                    param.grad.data = param.grad.data.to(device)
-            a, _ = load_audio(temp_audio, sr=ModelParams().sr)
-            enh = enhance(model, df_state, a, pad=True)
-            stage1 = os.path.join(temp_dir, "stage1.wav")
-            save_audio(stage1, enh, sr=ModelParams().sr)
-            print(f"   ✓ DeepFilterNet complete")
+            try:
+                model, df_state, _ = init_df()
+                model = model.to(device)
+                # Ensure model is actually on the correct device
+                for param in model.parameters():
+                    param.data = param.data.to(device)
+                    if param.grad is not None:
+                        param.grad.data = param.grad.data.to(device)
+                a, sr = load_audio(temp_audio, sr=ModelParams().sr)
+                
+                # DeepFilterNet's enhance() function has internal numpy conversion
+                # that doesn't work with CUDA tensors, so we must keep audio on CPU
+                # but model can be on GPU
+                a = a.cpu()  # Keep audio on CPU for enhance() function
+                
+                enh = enhance(model, df_state, a, pad=True)
+                
+                # Move result to same device as model if needed, then convert to numpy
+                if isinstance(enh, torch.Tensor):
+                    enh = enh.detach()
+                    if enh.is_cuda:
+                        enh = enh.cpu()
+                    enh = enh.numpy()
+                
+                # Ensure enh is 1D or 2D numpy array
+                if enh.ndim > 2:
+                    enh = enh.squeeze()
+                if enh.ndim == 2 and enh.shape[0] == 1:
+                    enh = enh[0]
+                
+                stage1 = os.path.join(temp_dir, "stage1.wav")
+                # Use soundfile directly to save numpy array
+                sf.write(stage1, enh, ModelParams().sr)
+                print(f"   ✓ DeepFilterNet complete")
+            except Exception as e:
+                print(f"   ❌ DeepFilterNet error: {str(e)}")
+                import traceback
+                traceback.print_exc()
+                raise
         else:
             print("   ⚠️  Skipping DeepFilterNet (not installed)")
             stage1 = temp_audio
@@ -155,7 +190,9 @@ def process_video(
             with torch.no_grad():
                 out = dns(wav)[0]
             stage2 = os.path.join(temp_dir, "stage2.wav")
-            torchaudio.save(stage2, out.cpu() if device.type == "cuda" else out, dns.sample_rate)
+            # Ensure tensor is on CPU before saving
+            out_cpu = out.cpu() if out.is_cuda else out
+            torchaudio.save(stage2, out_cpu.detach(), dns.sample_rate)
             print(f"   ✓ Facebook Denoiser complete")
         else:
             if use_facebook_denoiser and not FACEBOOK_DENOISER_AVAILABLE:
