@@ -806,6 +806,247 @@
             font-size: 0.9em;
             border-left: 3px solid #4a9eff;
         }
+
+        /* Assessment Styles */
+        .assessment-container {
+            margin-top: 20px;
+        }
+
+        .assessment-question {
+            background: #1a1a1a;
+            border: 2px solid #333;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .assessment-question.correct {
+            border-color: #22c55e;
+            background: rgba(34, 197, 94, 0.1);
+        }
+
+        .assessment-question.incorrect {
+            border-color: #ef4444;
+            background: rgba(239, 68, 68, 0.1);
+        }
+
+        .question-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .question-number {
+            background: #2d2d2d;
+            color: #fff;
+            padding: 5px 12px;
+            border-radius: 6px;
+            font-weight: 600;
+            font-size: 0.9em;
+        }
+
+        .question-text {
+            color: #fff;
+            font-size: 1.05em;
+            line-height: 1.6;
+            margin-bottom: 15px;
+        }
+
+        .option-group {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .option-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 15px;
+            background: #0a0a0a;
+            border: 2px solid #444;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .option-item:hover {
+            background: #2d2d2d;
+            border-color: #666;
+        }
+
+        .option-item.selected {
+            background: #2d2d2d;
+            border-color: #fff;
+        }
+
+        .option-item.correct-answer {
+            background: rgba(34, 197, 94, 0.2);
+            border-color: #22c55e;
+        }
+
+        .option-item.wrong-answer {
+            background: rgba(239, 68, 68, 0.2);
+            border-color: #ef4444;
+        }
+
+        .option-radio {
+            width: 20px;
+            height: 20px;
+            border: 2px solid #666;
+            border-radius: 50%;
+            flex-shrink: 0;
+            position: relative;
+        }
+
+        .option-item.selected .option-radio {
+            border-color: #fff;
+        }
+
+        .option-item.selected .option-radio::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 10px;
+            height: 10px;
+            background: #fff;
+            border-radius: 50%;
+        }
+
+        .option-text {
+            color: #ccc;
+            flex: 1;
+            font-size: 0.95em;
+        }
+
+        .option-item.correct-answer .option-text,
+        .option-item.wrong-answer .option-text {
+            color: #fff;
+            font-weight: 500;
+        }
+
+        .explanation-box {
+            margin-top: 15px;
+            padding: 15px;
+            background: #0a0a0a;
+            border-left: 4px solid #4a9eff;
+            border-radius: 6px;
+        }
+
+        .explanation-title {
+            color: #4a9eff;
+            font-weight: 600;
+            margin-bottom: 8px;
+            font-size: 0.9em;
+        }
+
+        .explanation-text {
+            color: #ccc;
+            line-height: 1.6;
+            font-size: 0.95em;
+        }
+
+        .short-answer-input {
+            width: 100%;
+            min-height: 120px;
+            padding: 12px 15px;
+            background: #0a0a0a;
+            border: 2px solid #444;
+            border-radius: 8px;
+            color: #fff;
+            font-size: 0.95em;
+            font-family: inherit;
+            resize: vertical;
+        }
+
+        .short-answer-input:focus {
+            outline: none;
+            border-color: #666;
+        }
+
+        .model-answer-box {
+            margin-top: 15px;
+            padding: 15px;
+            background: #0a0a0a;
+            border-left: 4px solid #22c55e;
+            border-radius: 6px;
+        }
+
+        .model-answer-title {
+            color: #22c55e;
+            font-weight: 600;
+            margin-bottom: 8px;
+            font-size: 0.9em;
+        }
+
+        .feedback-box {
+            margin-top: 15px;
+            padding: 15px;
+            background: #0a0a0a;
+            border-left: 4px solid #f59e0b;
+            border-radius: 6px;
+        }
+
+        .feedback-score {
+            color: #f59e0b;
+            font-weight: 600;
+            margin-bottom: 8px;
+            font-size: 1em;
+        }
+
+        .score-card {
+            background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+            border: 2px solid #333;
+            border-radius: 12px;
+            padding: 30px;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .score-icon {
+            font-size: 4em;
+            margin-bottom: 15px;
+        }
+
+        .score-value {
+            font-size: 3em;
+            font-weight: 700;
+            background: linear-gradient(135deg, #ffffff 0%, #cccccc 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 15px;
+        }
+
+        .score-breakdown {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin-top: 15px;
+        }
+
+        .score-item {
+            color: #999;
+            font-size: 0.95em;
+        }
+
+        .score-item span {
+            color: #fff;
+            font-weight: 600;
+        }
+
+        .assessment-actions {
+            display: flex;
+            gap: 15px;
+            margin-top: 30px;
+        }
+
+        .assessment-actions button {
+            flex: 1;
+        }
     </style>
 </head>
 <body>
@@ -898,6 +1139,7 @@
                 <button class="btn" id="downloadBtn">Download Processed</button>
                 <button class="btn" id="downloadOriginalBtn">Download Original</button>
                 <button class="btn" id="toggleQASummaryBtn">Q&A Panel</button>
+                <button class="btn" id="toggleAssessmentBtn">Assessment</button>
             </div>
 
             <!-- Audio Track Selector -->
@@ -988,6 +1230,28 @@
                         <button class="btn-generate" id="askBtn">
                             Send
                         </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Assessment Panel -->
+            <div class="assessment-container" id="assessmentContainer" style="display: none;">
+                <div class="qa-card">
+                    <div class="section-header">
+                        <div class="section-title">
+                            <span></span>
+                            <span>Video Assessment</span>
+                        </div>
+                        <button class="btn-generate" id="generateAssessmentBtn" style="font-size: 0.9em; padding: 8px 15px;">
+                            Generate Assessment
+                        </button>
+                    </div>
+
+                    <div id="assessmentContent">
+                        <div class="empty-state">
+                            <div style="font-size: 3em; margin-bottom: 10px; opacity: 0.3;">📝</div>
+                            <p>Click "Generate Assessment" to create MCQs and short answer questions based on the video content...</p>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -1739,6 +2003,366 @@
                 .replace(/\n\n/g, '</p><p>')
                 .replace(/\n/g, '<br>')
                 .replace(/^(.*)$/, '<p>$1</p>');
+        }
+
+        // ========== ASSESSMENT FUNCTIONS ==========
+        
+        const toggleAssessmentBtn = document.getElementById('toggleAssessmentBtn');
+        const assessmentContainer = document.getElementById('assessmentContainer');
+        const generateAssessmentBtn = document.getElementById('generateAssessmentBtn');
+        const assessmentContent = document.getElementById('assessmentContent');
+        
+        let assessmentData = null;
+        let mcqAnswers = {};
+        let shortAnswers = {};
+        let assessmentSubmitted = false;
+        
+        toggleAssessmentBtn.addEventListener('click', () => {
+            if (assessmentContainer.style.display === 'none') {
+                assessmentContainer.style.display = 'block';
+                qaSummaryContainer.style.display = 'none';
+                toggleQASummaryBtn.textContent = 'Q&A Panel';
+                toggleAssessmentBtn.textContent = 'Hide Assessment';
+            } else {
+                assessmentContainer.style.display = 'none';
+                toggleAssessmentBtn.textContent = 'Assessment';
+            }
+        });
+        
+        generateAssessmentBtn.addEventListener('click', async () => {
+            if (!currentVideoId) {
+                alert('Please process a video first');
+                return;
+            }
+            
+            generateAssessmentBtn.disabled = true;
+            generateAssessmentBtn.innerHTML = '<span class="spinner"></span> Generating...';
+            
+            try {
+                const response = await fetch(`http://localhost:8001/api/assessment/${currentVideoId}`, {
+                    method: 'POST'
+                });
+                
+                if (!response.ok) {
+                    throw new Error('Failed to generate assessment');
+                }
+                
+                const result = await response.json();
+                // Backend returns { status, video_id, language, data: { mcqs, shortQuestions } }
+                assessmentData = result.data || result;
+                mcqAnswers = {};
+                shortAnswers = {};
+                assessmentSubmitted = false;
+                renderAssessment();
+                
+            } catch (error) {
+                console.error('Error generating assessment:', error);
+                assessmentContent.innerHTML = `
+                    <div class="empty-state">
+                        <p style="color: #ff6b6b;">Failed to generate assessment</p>
+                        <p style="color: #999; font-size: 0.9em; margin-top: 10px;">${error.message}</p>
+                    </div>
+                `;
+            } finally {
+                generateAssessmentBtn.disabled = false;
+                generateAssessmentBtn.innerHTML = 'Generate Assessment';
+            }
+        });
+        
+        function renderAssessment() {
+            if (!assessmentData) return;
+            
+            if (assessmentSubmitted) {
+                renderAssessmentResults();
+            } else {
+                renderAssessmentQuestions();
+            }
+        }
+        
+        function renderAssessmentQuestions() {
+            const { mcqs, shortQuestions } = assessmentData;
+            
+            let html = '<div style="margin-bottom: 30px;">';
+            
+            // MCQs Section
+            html += '<h3 style="color: #fff; margin-bottom: 20px; font-size: 1.3em;">Multiple Choice Questions (1 mark each)</h3>';
+            
+            mcqs.forEach((mcq, index) => {
+                html += `
+                    <div class="assessment-question">
+                        <div class="question-header">
+                            <span class="question-number">Question ${index + 1}</span>
+                        </div>
+                        <div class="question-text">${mcq.question}</div>
+                        <div class="option-group">
+                `;
+                
+                mcq.options.forEach((option, optIndex) => {
+                    const isSelected = mcqAnswers[index] === optIndex;
+                    html += `
+                        <div class="option-item ${isSelected ? 'selected' : ''}" onclick="selectMCQOption(${index}, ${optIndex})">
+                            <div class="option-radio"></div>
+                            <div class="option-text">${String.fromCharCode(65 + optIndex)}. ${option}</div>
+                        </div>
+                    `;
+                });
+                
+                html += `
+                        </div>
+                    </div>
+                `;
+            });
+            
+            // Short Answer Section
+            html += '<h3 style="color: #fff; margin: 30px 0 20px 0; font-size: 1.3em;">Short Answer Questions (2 marks each)</h3>';
+            
+            shortQuestions.forEach((q, index) => {
+                html += `
+                    <div class="assessment-question">
+                        <div class="question-header">
+                            <span class="question-number">Question ${mcqs.length + index + 1}</span>
+                        </div>
+                        <div class="question-text">${q.question}</div>
+                        <textarea 
+                            class="short-answer-input" 
+                            placeholder="Type your answer here..."
+                            oninput="updateShortAnswer(${index}, this.value)"
+                        >${shortAnswers[index] || ''}</textarea>
+                    </div>
+                `;
+            });
+            
+            html += `
+                <div class="assessment-actions">
+                    <button class="btn btn-generate" onclick="submitAssessment()" style="width: 100%;">
+                        Submit Assessment
+                    </button>
+                </div>
+            </div>
+            `;
+            
+            assessmentContent.innerHTML = html;
+        }
+        
+        function selectMCQOption(questionIndex, optionIndex) {
+            if (assessmentSubmitted) return;
+            mcqAnswers[questionIndex] = optionIndex;
+            renderAssessment();
+        }
+        
+        function updateShortAnswer(questionIndex, value) {
+            shortAnswers[questionIndex] = value;
+        }
+        
+        async function submitAssessment() {
+            if (!assessmentData) return;
+            
+            // Check if all questions are answered
+            const mcqCount = assessmentData.mcqs.length;
+            const shortCount = assessmentData.shortQuestions.length;
+            
+            if (Object.keys(mcqAnswers).length < mcqCount) {
+                alert('Please answer all multiple choice questions');
+                return;
+            }
+            
+            for (let i = 0; i < shortCount; i++) {
+                if (!shortAnswers[i] || shortAnswers[i].trim() === '') {
+                    alert('Please answer all short answer questions');
+                    return;
+                }
+            }
+            
+            // Show loading
+            assessmentContent.innerHTML = `
+                <div class="empty-state">
+                    <div class="spinner" style="margin: 0 auto 20px;"></div>
+                    <p>Evaluating your answers...</p>
+                </div>
+            `;
+            
+            try {
+                // Calculate MCQ score
+                let mcqScore = 0;
+                assessmentData.mcqs.forEach((mcq, index) => {
+                    if (mcqAnswers[index] === mcq.correct) {
+                        mcqScore++;
+                    }
+                });
+                
+                // Evaluate short answers
+                let shortScore = 0;
+                const shortFeedback = {};
+                
+                for (let i = 0; i < assessmentData.shortQuestions.length; i++) {
+                    const q = assessmentData.shortQuestions[i];
+                    const userAnswer = shortAnswers[i] || '';
+                    
+                    try {
+                        // Use FormData as backend expects Form data
+                        const formData = new FormData();
+                        formData.append('question', q.question);
+                        formData.append('model_answer', q.answer);
+                        formData.append('user_answer', userAnswer);
+                        
+                        const response = await fetch(`http://localhost:8001/api/evaluate`, {
+                            method: 'POST',
+                            body: formData
+                        });
+                        
+                        if (!response.ok) throw new Error('Evaluation failed');
+                        
+                        const result = await response.json();
+                        shortScore += result.score;
+                        shortFeedback[i] = {
+                            score: result.score,
+                            feedback: result.feedback
+                        };
+                    } catch (error) {
+                        console.error('Error evaluating answer:', error);
+                        shortFeedback[i] = {
+                            score: 0,
+                            feedback: 'Error evaluating your answer. Please try again.'
+                        };
+                    }
+                }
+                
+                assessmentData.mcqScore = mcqScore;
+                assessmentData.shortScore = Math.round(shortScore * 10) / 10;
+                assessmentData.totalScore = mcqScore + assessmentData.shortScore;
+                assessmentData.shortFeedback = shortFeedback;
+                
+                assessmentSubmitted = true;
+                renderAssessmentResults();
+                
+            } catch (error) {
+                console.error('Error submitting assessment:', error);
+                assessmentContent.innerHTML = `
+                    <div class="empty-state">
+                        <p style="color: #ff6b6b;">Failed to evaluate assessment</p>
+                        <p style="color: #999; font-size: 0.9em; margin-top: 10px;">${error.message}</p>
+                    </div>
+                `;
+            }
+        }
+        
+        function renderAssessmentResults() {
+            const { mcqs, shortQuestions, mcqScore, shortScore, totalScore, shortFeedback } = assessmentData;
+            
+            let html = `
+                <div class="score-card">
+                    <div class="score-icon">🏆</div>
+                    <h3 style="color: #fff; margin-bottom: 10px; font-size: 1.5em;">Assessment Complete!</h3>
+                    <div class="score-value">${totalScore} / ${mcqs.length + (shortQuestions.length * 2)}</div>
+                    <div class="score-breakdown">
+                        <div class="score-item">Multiple Choice: <span>${mcqScore} / ${mcqs.length}</span></div>
+                        <div class="score-item">Short Answer: <span>${shortScore} / ${shortQuestions.length * 2}</span></div>
+                    </div>
+                </div>
+            `;
+            
+            // MCQ Results
+            html += '<h3 style="color: #fff; margin-bottom: 20px; font-size: 1.3em;">Multiple Choice Questions</h3>';
+            
+            mcqs.forEach((mcq, index) => {
+                const userAnswer = mcqAnswers[index];
+                const isCorrect = userAnswer === mcq.correct;
+                
+                html += `
+                    <div class="assessment-question ${isCorrect ? 'correct' : 'incorrect'}">
+                        <div class="question-header">
+                            <span class="question-number">Question ${index + 1}</span>
+                            <span style="color: ${isCorrect ? '#22c55e' : '#ef4444'}; font-weight: 600; margin-left: 10px;">
+                                ${isCorrect ? '✓ Correct' : '✗ Incorrect'}
+                            </span>
+                        </div>
+                        <div class="question-text">${mcq.question}</div>
+                        <div class="option-group">
+                `;
+                
+                mcq.options.forEach((option, optIndex) => {
+                    const isUserAnswer = userAnswer === optIndex;
+                    const isCorrectAnswer = mcq.correct === optIndex;
+                    let className = 'option-item';
+                    if (isCorrectAnswer) className += ' correct-answer';
+                    else if (isUserAnswer) className += ' wrong-answer';
+                    
+                    html += `
+                        <div class="${className}">
+                            <div class="option-radio"></div>
+                            <div class="option-text">
+                                ${String.fromCharCode(65 + optIndex)}. ${option}
+                                ${isUserAnswer ? ' (Your answer)' : ''}
+                                ${isCorrectAnswer ? ' ✓' : ''}
+                            </div>
+                        </div>
+                    `;
+                });
+                
+                if (mcq.explanation) {
+                    html += `
+                        <div class="explanation-box">
+                            <div class="explanation-title">💡 Explanation:</div>
+                            <div class="explanation-text">${mcq.explanation}</div>
+                        </div>
+                    `;
+                }
+                
+                html += `
+                        </div>
+                    </div>
+                `;
+            });
+            
+            // Short Answer Results
+            html += '<h3 style="color: #fff; margin: 30px 0 20px 0; font-size: 1.3em;">Short Answer Questions</h3>';
+            
+            shortQuestions.forEach((q, index) => {
+                const feedback = shortFeedback[index] || { score: 0, feedback: 'No feedback available' };
+                
+                html += `
+                    <div class="assessment-question">
+                        <div class="question-header">
+                            <span class="question-number">Question ${mcqs.length + index + 1}</span>
+                        </div>
+                        <div class="question-text">${q.question}</div>
+                        
+                        <div style="margin-top: 15px;">
+                            <p style="color: #999; font-size: 0.9em; margin-bottom: 8px; font-weight: 600;">Your Answer:</p>
+                            <div style="background: #0a0a0a; padding: 12px 15px; border-radius: 6px; border-left: 3px solid #4a9eff;">
+                                <p style="color: #ccc; line-height: 1.6;">${shortAnswers[index] || 'No answer provided'}</p>
+                            </div>
+                        </div>
+                        
+                        <div class="model-answer-box">
+                            <div class="model-answer-title">Model Answer:</div>
+                            <div class="explanation-text">${q.answer}</div>
+                        </div>
+                        
+                        <div class="feedback-box">
+                            <div class="feedback-score">Score: ${feedback.score} / 2</div>
+                            <div class="explanation-text">${feedback.feedback}</div>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            html += `
+                <div class="assessment-actions">
+                    <button class="btn" onclick="retakeAssessment()" style="width: 100%;">
+                        Retake Assessment
+                    </button>
+                </div>
+            `;
+            
+            assessmentContent.innerHTML = html;
+        }
+        
+        function retakeAssessment() {
+            mcqAnswers = {};
+            shortAnswers = {};
+            assessmentSubmitted = false;
+            renderAssessment();
         }
 
         // Initialize
